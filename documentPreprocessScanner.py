@@ -8,17 +8,14 @@ import utlis
 # are actually necessary. Planning to add a manual adjustment for the area of the
 # document in case the one autodetected by opencv isn't right.
 
-def documentPreprocess(option):
+def documentPreprocess():
     ########################################################################
     webCamFeed = True
     pathImage = "1.jpg"
-    if option == 0:
-        cap = cv2.VideoCapture(0)
-        cap.set(10, 160)
-    else:
-        # This path is a placeholder that will be get by parameter later on
-        path = r"C:\Users\jsali\Downloads\print-services-980x640"
-        cap = cv2.imread(path)
+
+    cap = cv2.VideoCapture(0)
+    cap.set(10, 160)
+
     heightImg = 640
     widthImg = 480
     ########################################################################
