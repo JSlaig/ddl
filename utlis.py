@@ -50,7 +50,7 @@ def reorder(myPoints):
 
     return myPointsNew
 
-
+# Might have to tweak this function to make sure it returns something cause currently it doesn't
 def biggestContour(contours):
     biggest = np.array([])
     max_area = 0
