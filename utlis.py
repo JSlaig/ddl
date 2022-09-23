@@ -54,16 +54,20 @@ def reorder(myPoints):
 def biggestContour(contours):
     biggest = np.array([])
     max_area = 0
+
     for i in contours:
+        print(i)
+        print("...................................................")
         area = cv2.contourArea(i)
+
         if area > 5000:
             peri = cv2.arcLength(i, True)
+            print(peri)
             approx = cv2.approxPolyDP(i, 0.02 * peri, True)
             if area > max_area and len(approx) == 4:
                 biggest = approx
                 max_area = area
 
-    print(biggest)
     return biggest, max_area
 
 

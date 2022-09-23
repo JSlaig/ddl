@@ -27,7 +27,7 @@ def getImageEdgeDetector(image):
     # So currently what I am gonna do is to set them manually as a parameter and tweak
     # them right there until I figure out how I really want to make the actual menu
 
-    imgThreshold = cv2.Canny(imgBlur, 80, 0)  # APPLY CANNY BLUR
+    imgThreshold = cv2.Canny(imgBlur, 10, 80)  # APPLY CANNY BLUR
 
     kernel = np.ones((5, 5))
 
