@@ -32,6 +32,7 @@ def loadImage():
 
         # Copy of the original image
         originalImage = image.copy()
+        originalImage2 = image.copy()
 
         # Firstly, we turn the image into grayScale
         image = dps.getImageGrayscale(image)
@@ -43,7 +44,7 @@ def loadImage():
         image, contours = dps.getImageContours(image, originalImage)
 
         # Fourth step is to find the actual biggest contour and draw it on the image
-        image = dps.getImageBiggestContour(originalImage, contours)
+        image = dps.getImageBiggestContour(originalImage2, contours)
 
         # Visualization of image in gui
         showImage = imutils.resize(image, height=600)

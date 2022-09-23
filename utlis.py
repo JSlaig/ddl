@@ -62,6 +62,8 @@ def biggestContour(contours):
             if area > max_area and len(approx) == 4:
                 biggest = approx
                 max_area = area
+
+    print(biggest)
     return biggest, max_area
 
 
