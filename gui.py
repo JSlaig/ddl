@@ -44,10 +44,10 @@ def loadImage():
         image, contours = dps.getImageContours(image, originalImage)
 
         # Fourth step is to find the actual biggest contour and draw it on the image
-        image = dps.getImageBiggestContour(originalImage2, contours)
+        finalImage = dps.getImageBiggestContour(originalImage2, contours)
 
         # Visualization of image in gui
-        showImage = imutils.resize(image, height=600)
+        showImage = imutils.resize(finalImage, height=600)
         showImage = cv2.cvtColor(showImage, cv2.COLOR_BGR2RGB)
         im = Image.fromarray(showImage)
         img = ImageTk.PhotoImage(image=im)
@@ -58,6 +58,15 @@ def loadImage():
         #Label input image
         lblInfo = Label(root, text="Input image")
         lblInfo.grid(column=0, row=1, padx=5, pady=5)
+
+        #Debugging
+        finalImage = imutils.resize(finalImage, height=600)
+        image = imutils.resize(image, height=600)
+        cv2.imshow('finalImage', finalImage)
+        cv2.imshow('image', image)
+        cv2.waitKey()
+        cv2.destryAllWindows()
+
 
 def runGUI():
 
