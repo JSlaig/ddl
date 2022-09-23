@@ -13,6 +13,8 @@ from screeninfo import get_monitors
 root = Tk()
 image = None
 lblImage = Label(root)
+windowHeight=0
+windowWidth=0
 
 def camera():
     dps.documentPreprocess()
@@ -44,7 +46,7 @@ def loadImage():
         image = dps.getImageBiggestContour(originalImage, contours)
 
         # Visualization of image in gui
-        showImage = imutils.resize(image, width=900)
+        showImage = imutils.resize(image, height=600)
         showImage = cv2.cvtColor(showImage, cv2.COLOR_BGR2RGB)
         im = Image.fromarray(showImage)
         img = ImageTk.PhotoImage(image=im)
@@ -64,8 +66,10 @@ def runGUI():
         if m.is_primary == True:
             mainMonitor = m
 
-    windowWidth = int(mainMonitor.width / 3 * 2)
-    windowHeight = int(mainMonitor.height / 3 * 2)
+    global windowWidth
+    windowWidth = int(mainMonitor.height / 16 * 7)
+    global windowHeight
+    windowHeight = int(mainMonitor.width / 16 * 7)
 
     root.geometry(str(windowWidth)+"x"+str(windowHeight))
 
