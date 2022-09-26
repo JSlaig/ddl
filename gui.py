@@ -8,6 +8,7 @@ import cv2
 import documentPreprocessScanner as dps
 import imagePinPointTesting as ipptasdf
 from screeninfo import get_monitors
+import utlis
 
 #Global variables
 root = Tk()
@@ -34,6 +35,7 @@ def loadImage():
         originalImage = image.copy()
         originalImage2 = image.copy()
 
+
         # Firstly, we turn the image into grayScale
         image = dps.getImageGrayscale(image)
 
@@ -44,7 +46,18 @@ def loadImage():
         image, contours = dps.getImageContours(image, originalImage)
 
         # Fourth step is to find the actual biggest contour and draw it on the image
-        finalImage = dps.getImageBiggestContour(originalImage2, contours)
+        biggest = dps.getImageBiggestContour(contours)
+
+        # We need to loop this stuff in order to be able to create the effect of an interface that lets us drag the
+        # points of the vertices
+
+        # We draw on the picture the coordinates of the vertices of biggest contour (pending to draw default ones
+        # otherwise)
+        if biggest.size != 0:
+            biggest = utlis.reorder(biggest)
+            finalImage = originalImage2.copy()
+            cv2.drawContours(finalImage, biggest, -1, (0, 255, 0), 20)  # DRAW THE BIGGEST CONTOUR
+            utlis.drawRectangle(finalImage, biggest, 2)
 
         # Visualization of image in gui
         showImage = imutils.resize(finalImage, height=600)
@@ -65,7 +78,7 @@ def loadImage():
         cv2.imshow('finalImage', finalImage)
         cv2.imshow('image', image)
         cv2.waitKey()
-        cv2.destryAllWindows()
+        cv2.destroyAllWindows()
 
 
 def runGUI():

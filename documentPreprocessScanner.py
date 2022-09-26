@@ -38,16 +38,11 @@ def getImageContours(image, original):
     contours, hierarchy = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # FIND ALL CONTOURS
     return cv2.drawContours(original, contours, -1, (0, 255, 0), 10), contours  # DRAW ALL DETECTED CONTOURS
 
-def getImageBiggestContour(original, contours):
-    image = original
+def getImageBiggestContour(contours):
     # FIND THE BIGGEST CONTOUR
     biggest, maxArea = utlis.biggestContour(contours)  # FIND THE BIGGEST CONTOUR
 
-    if biggest.size != 0:
-        biggest = utlis.reorder(biggest)
-        cv2.drawContours(image, biggest, -1, (0, 255, 0), 20)  # DRAW THE BIGGEST CONTOUR
-        utlis.drawRectangle(image, biggest, 2)
-    return image
+    return biggest
 
 def documentPreprocess():
     ########################################################################
