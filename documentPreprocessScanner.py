@@ -44,6 +44,18 @@ def getImageBiggestContour(contours):
 
     return biggest
 
+def drawImageBiggestContourAuto(biggest, image):
+    biggest = utlis.reorder(biggest)
+    cv2.drawContours(image, biggest, -1, (0, 255, 0), 20)  # DRAW THE BIGGEST CONTOUR
+    utlis.drawRectangle(image, biggest, 2)
+    return image
+
+def drawImageBiggestContourWPoints(point1, point2, point3, point4, image):
+    biggest = np.array([[point1], [point2], [point3], [point4]])
+    biggest = utlis.reorder(biggest)
+    cv2.drawContours(image, biggest, -1, (0, 255, 0), 20)  # DRAW THE BIGGEST CONTOUR
+    utlis.drawRectangle(image, biggest, 2)
+    return image
 def documentPreprocess():
     ########################################################################
     webCamFeed = True

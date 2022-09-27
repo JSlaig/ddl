@@ -10,15 +10,17 @@ import imagePinPointTesting as ipptasdf
 from screeninfo import get_monitors
 import utlis
 
-#Global variables
+# Global variables
 root = Tk()
 image = None
 lblImage = Label(root)
-windowHeight=0
-windowWidth=0
+windowHeight = 0
+windowWidth = 0
+
 
 def camera():
     dps.documentPreprocess()
+
 
 def loadImage():
     path = filedialog.askopenfilename(filetypes=[("image", ".jpg"),
@@ -34,7 +36,6 @@ def loadImage():
         # Copy of the original image
         originalImage = image.copy()
         originalImage2 = image.copy()
-
 
         # Firstly, we turn the image into grayScale
         image = dps.getImageGrayscale(image)
@@ -53,11 +54,20 @@ def loadImage():
 
         # We draw on the picture the coordinates of the vertices of biggest contour (pending to draw default ones
         # otherwise)
+        finalImage = originalImage2.copy()
+
         if biggest.size != 0:
-            biggest = utlis.reorder(biggest)
-            finalImage = originalImage2.copy()
-            cv2.drawContours(finalImage, biggest, -1, (0, 255, 0), 20)  # DRAW THE BIGGEST CONTOUR
-            utlis.drawRectangle(finalImage, biggest, 2)
+            dps.drawImageBiggestContourAuto(biggest, finalImage)
+        else:
+            height, width = image.shape[:2]
+
+            # Set up the 4 points of the image based on the resolution of the picture, with an aspect ratio of 1:1.4
+            point1 = np.array([width / 4, height / 4])
+            point2 = np.array([3 * width / 4, height / 4])
+            point3 = np.array([width / 4, (int)(3 * height / 4)])
+            point4 = np.array([3 * width / 4, (int)(3 * height / 4)])
+
+            dps.drawImageBiggestContourWPoints(point1, point2, point3, point4, finalImage)
 
         # Visualization of image in gui
         showImage = imutils.resize(finalImage, height=600)
@@ -68,11 +78,11 @@ def loadImage():
         lblImage.configure(image=img)
         lblImage.image = img
 
-        #Label input image
+        # Label input image
         lblInfo = Label(root, text="Input image")
         lblInfo.grid(column=0, row=1, padx=5, pady=5)
 
-        #Debugging
+        # Debugging
         finalImage = imutils.resize(finalImage, height=600)
         image = imutils.resize(image, height=600)
         cv2.imshow('finalImage', finalImage)
@@ -82,7 +92,6 @@ def loadImage():
 
 
 def runGUI():
-
     # Setting the window size based on the monitor resolution
     mainMonitor = None
     for m in get_monitors():
@@ -94,7 +103,7 @@ def runGUI():
     global windowHeight
     windowHeight = int(mainMonitor.width / 16 * 7)
 
-    root.geometry(str(windowWidth)+"x"+str(windowHeight))
+    root.geometry(str(windowWidth) + "x" + str(windowHeight))
 
     # Label where image will appear
     lblImage.grid(column=0, row=2)
