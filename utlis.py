@@ -36,7 +36,7 @@ def stack_images(img_array, scale, labels=[]):
 
     return ver
 
-
+# This one might need a bigger tweak rather than the actual thresholds
 def reorder(my_points):
     my_points = my_points.reshape((4, 2))
     my_points_new = np.zeros((4, 1, 2), dtype=np.int32)

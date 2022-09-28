@@ -64,40 +64,8 @@ def load_image():
         # Read image on opencv
         image = cv2.imread(path)
 
-        # Copy of the original image
-        original_image = image.copy()
-        original_image2 = image.copy()
-
-        # Firstly, we turn the image into grayScale
-        image = dps.get_image_grayscale(image)
-
-        # Secondly, we run edge detector through the image
-        image = dps.get_image_edge_detector(image)
-
-        # Thirdly, we have to find the contours present in the picture
-        image, contours = dps.get_image_contours(image, original_image)
-
-        # Fourth step is to find the actual biggest contour and draw it on the image
-        biggest = dps.get_image_biggest_contour(contours)
-
-        # We need to loop this stuff in order to be able to create the effect of an interface that lets us drag the
-        # points of the vertices
-
-        # We draw on the picture the coordinates of the vertices of the biggest contour
-        final_image = original_image2.copy()
-
-        if biggest.size != 0:
-            dps.draw_image_biggest_contour_auto(biggest, final_image)
-        else:
-            height, width = image.shape[:2]
-
-            # Set up the 4 points of the image based on the resolution of the picture, with an aspect ratio of 1:1.4
-            point1 = np.array([width / 4, height / 4])
-            point2 = np.array([3 * width / 4, height / 4])
-            point3 = np.array([width / 4, int(3 * height / 4)])
-            point4 = np.array([3 * width / 4, int(3 * height / 4)])
-
-            dps.draw_image_biggest_contour_w_points(point1, point2, point3, point4, final_image)
+        # Whole process contained in a specific method
+        final_image = image_preprocess(image)
 
         # Visualization of image in gui
         show_image = imutils.resize(final_image, height=600)
@@ -120,3 +88,48 @@ def load_image():
         cv2.imshow('image', image)
         cv2.waitKey()
         cv2.destroyAllWindows()
+
+
+# Parameter: Raw-Image
+# Return_Value: Image with contour of the image drawn
+# Observations: Might have to actually just return the values of the vertices in order to make it loop-able and make the
+# pinpoint selection system
+def image_preprocess(image_source):
+    image = image_source
+
+    # Copy of the original image
+    original_image = image.copy()
+    original_image2 = image.copy()
+
+    # Firstly, we turn the image into grayScale
+    image = dps.get_image_grayscale(image)
+
+    # Secondly, we run edge detector through the image
+    image = dps.get_image_edge_detector(image)
+
+    # Thirdly, we have to find the contours present in the picture
+    image, contours = dps.get_image_contours(image, original_image)
+
+    # Fourth step is to find the actual biggest contour and draw it on the image
+    biggest = dps.get_image_biggest_contour(contours)
+
+    # We need to loop this stuff in order to be able to create the effect of an interface that lets us drag the
+    # points of the vertices
+
+    # We draw on the picture the coordinates of the vertices of the biggest contour
+    final_image = original_image2.copy()
+
+    if biggest.size != 0:
+        dps.draw_image_biggest_contour_auto(biggest, final_image)
+    else:
+        height, width = image.shape[:2]
+
+        # Set up the 4 points of the image based on the resolution of the picture, with an aspect ratio of 1:1.4
+        point1 = np.array([width / 4, height / 4])
+        point2 = np.array([3 * width / 4, height / 4])
+        point3 = np.array([width / 4, int(3 * height / 4)])
+        point4 = np.array([3 * width / 4, int(3 * height / 4)])
+
+        dps.draw_image_biggest_contour_w_points(point1, point2, point3, point4, final_image)
+
+    return final_image
