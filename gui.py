@@ -15,6 +15,8 @@ image = None
 lblImage = Label(root)
 windowHeight = 0
 windowWidth = 0
+mouse_x = 0
+mouse_y = 0
 
 
 # ///////////////////////////////////// METHODS ///////////////////////////////////// 
@@ -43,7 +45,13 @@ def run_gui() -> object:
     btn_camera = Button(root, text="capture", width=25, command=camera)
     btn_camera.grid(column=2, row=0, padx=5, pady=5)
 
+    root.bind('<Motion>', motion)
     root.mainloop()
+
+
+def motion(event):
+    x, y = event.x, event.y
+    print('{}, {}'.format(x, y))
 
 
 # Method for starting preprocess of the image taking as input the webcam (MUST BE REARRANGED AND RE-FACTORIZED ONCE 
@@ -63,17 +71,27 @@ def load_image():
 
         # Read image on opencv
         image = cv2.imread(path)
+        image = imutils.resize(image, height=600)
 
         image_copy = image.copy()
 
-        # Whole process contained in a specific method
+        # Get the auto-detected borders of the shape
         point1, point2, point3, point4, image = image_preprocess(image)
+
+        # Gotta loop this in order to find current mouse coordinates and refresh the position of each point
+
+
 
         final_image = dps.draw_image_biggest_contour(point1, point2, point3, point4, image_copy)
 
+        print(point1)
+        print(point2)
+        print(point3)
+        print(point4)
+
+
         # Visualization of image in gui
-        show_image = imutils.resize(final_image, height=600)
-        show_image = cv2.cvtColor(show_image, cv2.COLOR_BGR2RGB)
+        show_image = cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB)
         im = Image.fromarray(show_image)
         img = ImageTk.PhotoImage(image=im)
 
