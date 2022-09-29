@@ -71,6 +71,7 @@ def load_image():
 
         # Read image on opencv
         image = cv2.imread(path)
+        image = imutils.resize(image, height=600)
 
         image_copy = image.copy()
 
@@ -90,7 +91,6 @@ def load_image():
 
 
         # Visualization of image in gui
-        show_image = imutils.resize(final_image, height=600)
         show_image = cv2.cvtColor(show_image, cv2.COLOR_BGR2RGB)
         im = Image.fromarray(show_image)
         img = ImageTk.PhotoImage(image=im)
