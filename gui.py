@@ -64,8 +64,12 @@ def load_image():
         # Read image on opencv
         image = cv2.imread(path)
 
+        image_copy = image.copy()
+
         # Whole process contained in a specific method
-        final_image, image = image_preprocess(image)
+        point1, point2, point3, point4, image = image_preprocess(image)
+
+        final_image = dps.draw_image_biggest_contour(point1, point2, point3, point4, image_copy)
 
         # Visualization of image in gui
         show_image = imutils.resize(final_image, height=600)
@@ -99,7 +103,6 @@ def image_preprocess(image_source):
 
     # Copy of the original image
     original_image = image.copy()
-    original_image2 = image.copy()
 
     # Firstly, we turn the image into grayScale
     image = dps.get_image_grayscale(image)
@@ -113,14 +116,13 @@ def image_preprocess(image_source):
     # Fourth step is to find the actual biggest contour and draw it on the image
     biggest = dps.get_image_biggest_contour(contours)
 
-    # We need to loop this stuff in order to be able to create the effect of an interface that lets us drag the
-    # points of the vertices
-
-    # We draw on the picture the coordinates of the vertices of the biggest contour
-    final_image = original_image2.copy()
+    # We get the coordinates for the vertices of the shape
 
     if biggest.size != 0:
-        dps.draw_image_biggest_contour_auto(biggest, final_image)
+        point1 = biggest[0]
+        point2 = biggest[1]
+        point3 = biggest[2]
+        point4 = biggest[3]
     else:
         height, width = image.shape[:2]
 
@@ -130,6 +132,4 @@ def image_preprocess(image_source):
         point3 = np.array([width / 4, int(3 * height / 4)])
         point4 = np.array([3 * width / 4, int(3 * height / 4)])
 
-        dps.draw_image_biggest_contour_w_points(point1, point2, point3, point4, final_image)
-
-    return final_image, image
+    return point1, point2, point3, point4, image
