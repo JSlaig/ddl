@@ -65,7 +65,7 @@ def load_image():
         image = cv2.imread(path)
 
         # Whole process contained in a specific method
-        final_image = image_preprocess(image)
+        final_image, image = image_preprocess(image)
 
         # Visualization of image in gui
         show_image = imutils.resize(final_image, height=600)
@@ -132,4 +132,4 @@ def image_preprocess(image_source):
 
         dps.draw_image_biggest_contour_w_points(point1, point2, point3, point4, final_image)
 
-    return final_image
+    return final_image, image

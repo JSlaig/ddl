@@ -36,7 +36,7 @@ def stack_images(img_array, scale, labels=[]):
 
     return ver
 
-# This one might need a bigger tweak rather than the actual thresholds
+
 def reorder(my_points):
     my_points = my_points.reshape((4, 2))
     my_points_new = np.zeros((4, 1, 2), dtype=np.int32)
@@ -53,23 +53,22 @@ def reorder(my_points):
 
 def biggest_contour(contours):
     biggest = np.array([])
-    max_area = 0
-
+    max_peri = 0
     for i in contours:
         area = cv2.contourArea(i)
 
-        if area > 5000:
+        if area > 50000:
+            print("area: " + str(area))
             peri = cv2.arcLength(i, True)
-
-            approx = cv2.approxPolyDP(i, 0.02 * peri, True)
-
-            if area > max_area and len(approx) == 4:
-                print(approx)
-
+            print("perimeter: " + str(peri))
+            approx = cv2.approxPolyDP(i, 0.0555 * peri, True)
+            print("lenapprox: " + str(len(approx)))
+            if peri > max_peri and len(approx) == 4:
                 biggest = approx
-                max_area = area
+                max_peri = peri
 
-    return biggest, max_area
+    print("chosen one: " + str(max_peri))
+    return biggest, max_peri
 
 
 def draw_rectangle(img, biggest, thickness):
