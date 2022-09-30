@@ -58,16 +58,16 @@ def biggest_contour(contours):
         area = cv2.contourArea(i)
 
         if area > 50000:
-            print("area: " + str(area))
+            # print("area: " + str(area))
             peri = cv2.arcLength(i, True)
-            print("perimeter: " + str(peri))
+            # print("perimeter: " + str(peri))
             approx = cv2.approxPolyDP(i, 0.0555 * peri, True)
-            print("lenapprox: " + str(len(approx)))
+            # print("lenapprox: " + str(len(approx)))
             if peri > max_peri and len(approx) == 4:
                 biggest = approx
                 max_peri = peri
 
-    print("chosen one: " + str(max_peri))
+    # print("chosen one: " + str(max_peri))
     return biggest, max_peri
 
 
