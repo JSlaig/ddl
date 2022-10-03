@@ -40,13 +40,6 @@ def get_image_contours(image, original):
     return cv2.drawContours(original, contours, -1, (0, 255, 0), 10), contours  # DRAW ALL DETECTED CONTOURS
 
 
-def get_image_biggest_contour(contours):
-    # FIND THE BIGGEST CONTOUR
-    biggest, max_area = utlis.biggest_contour(contours)  # FIND THE BIGGEST CONTOUR
-
-    return biggest
-
-
 def draw_image_biggest_contour(point1, point2, point3, point4, image):
     biggest = np.array([[point1], [point2], [point3], [point4]])
     biggest = utlis.reorder(biggest)

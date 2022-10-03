@@ -9,8 +9,29 @@ import documentPreprocessScanner as dps
 from screeninfo import get_monitors
 import utlis
 
-# ///////////////////////////////////// GLOBAL VARIABLES ///////////////////////////////////// 
+
+# ///////////////////////////////////// CLASS /////////////////////////////////////
+class App:
+    def __init__(self, root):
+        self.root = root
+        self.mouse_pressed = False
+
+    def OnMouseDown(self, event):
+        self.mouse_pressed = True
+        self.poll()
+
+    def OnMouseUp(self, event):
+        self.root.after_cancel(self.after_id)
+
+    def poll(self):
+        if self.mouse_pressed:
+            self.do_work()
+            self.after_id = self.root.after(250, self.poll)
+
+
+# ///////////////////////////////////// GLOBAL VARIABLES /////////////////////////////////////
 root = Tk()
+app = App(root)
 image = None
 lblImage = Label(root)
 windowHeight = 0
@@ -50,8 +71,8 @@ def run_gui() -> object:
 
 
 def motion(event):
-    x, y = event.x, event.y
-    print('{}, {}'.format(x, y))
+    mouse_x, mouse_y = event.x, event.y
+    print('{}, {}'.format(mouse_x, mouse_y))
 
 
 # Method for starting preprocess of the image taking as input the webcam (MUST BE REARRANGED AND RE-FACTORIZED ONCE 
@@ -72,22 +93,21 @@ def load_image():
         # Read image on opencv
         image = cv2.imread(path)
 
-        image_copy = image.copy()
-
         # Get the auto-detected borders of the shape
         point1, point2, point3, point4, image = image_preprocess(image)
 
-        # Gotta loop this in order to find current mouse coordinates and refresh the position of each point
+        # Got to loop this in order to find current mouse coordinates and refresh the position of each point
 
-
-
-        final_image = dps.draw_image_biggest_contour(point1, point2, point3, point4, image_copy)
+        while True:
+            if app.mouse_pressed:
+                # If mouse is pressed then we have to check the coordinates in order to change the value of them
+                # and the value must be refreshed on the screen as well, so the loop must start here until the end
+            final_image = dps.draw_image_biggest_contour(point1, point2, point3, point4, image)
 
         print(point1)
         print(point2)
         print(point3)
         print(point4)
-
 
         # Visualization of image in gui
         show_image = cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB)
