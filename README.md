@@ -1,5 +1,5 @@
 # DocClone
-TFG Project
+TFG Project (WIP)
 
 The idea from this project is trying to take what mobile applications such as Cam Scanner and Office Lens do, one step forward. 
 By using computer vision and OCR the aim is to recognize all the patterns visible in a picture of a document and trying to 
