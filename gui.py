@@ -72,7 +72,7 @@ def run_gui() -> object:
 
 def motion(event):
     mouse_x, mouse_y = event.x, event.y
-    print('{}, {}'.format(mouse_x, mouse_y))
+    print('x, y -> {}, {}'.format(mouse_x, mouse_y))
 
 
 # Method for starting preprocess of the image taking as input the webcam (MUST BE REARRANGED AND RE-FACTORIZED ONCE 
@@ -81,7 +81,8 @@ def camera():
     dps.document_preprocess()
 
 
-# Method for doing all the preprocessing of an image from the filesystem
+# Method will be refactorized in order to only load the image from the filesystem and all preprocess will be actually
+# moved to document preprocess scanner
 def load_image():
     path = filedialog.askopenfilename(filetypes=[("image", ".jpg"),
                                                  ("image", ".jpeg"),
@@ -94,23 +95,30 @@ def load_image():
         image = cv2.imread(path)
 
         # Get the auto-detected borders of the shape
-        point1, point2, point3, point4, image = image_preprocess(image)
+        point1, point2, point3, point4 = detect_document_vertices(image)
 
-        # Got to loop this in order to find current mouse coordinates and refresh the position of each point
-
-        while True:
-            if app.mouse_pressed:
-                # If mouse is pressed then we have to check the coordinates in order to change the value of them
-                # and the value must be refreshed on the screen as well, so the loop must start here until the end
-            final_image = dps.draw_image_biggest_contour(point1, point2, point3, point4, image)
-
+        print("--------------------------------------")
+        print("Coordinates for vertices are: ")
         print(point1)
         print(point2)
         print(point3)
         print(point4)
+        print("--------------------------------------")
+
+        # Got to loop this in order to find current mouse coordinates and refresh the position of each point
+        # Loop must be constraint with the value of a button that actually stores the final vertices value in
+        # order to warp perspective afterwards
+
+        #while True:
+            #if app.mouse_pressed:
+                # If mouse is pressed then we have to check the coordinates in order to change the value of them
+                # and the value must be refreshed on the screen as well, so the loop must start here until the end
+        final_image = dps.draw_image_biggest_contour(point1, point2, point3, point4, image)
+
+
 
         # Visualization of image in gui
-        show_image = cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB)
+        show_image = cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB) # Need to change the color scheme for proper visuals
         im = Image.fromarray(show_image)
         img = ImageTk.PhotoImage(image=im)
 
@@ -132,23 +140,23 @@ def load_image():
 
 
 # Parameter: Raw-Image
-# Return_Value: Image with contour of the image drawn
-# Observations: Might have to actually just return the values of the vertices in order to make it loop-able and make the
-# pinpoint selection system
-def image_preprocess(image_source):
-    image = image_source
+# Return_Value: Estimated vertices of the document contained in the image
+# Observations: Originally it already returned the modified image with the contour, but since I want to enable contours
+#               to be edited after the initial estimation, the function will only return the vertices coordinates.
+def detect_document_vertices(image_source):
+    image_aux = image_source
 
     # Copy of the original image
-    original_image = image.copy()
+    original_image = image_aux.copy()
 
     # Firstly, we turn the image into grayScale
-    image = dps.get_image_grayscale(image)
+    image_aux = dps.get_image_grayscale(image_aux)
 
     # Secondly, we run edge detector through the image
-    image = dps.get_image_edge_detector(image)
+    image_aux = dps.get_image_edge_detector(image_aux)
 
     # Thirdly, we have to find the contours present in the picture
-    image, contours = dps.get_image_contours(image, original_image)
+    image_aux, contours = dps.get_image_contours(image_aux, original_image)
 
     # Fourth step is to find the actual biggest contour and draw it on the image
     biggest = dps.get_image_biggest_contour(contours)
@@ -161,7 +169,7 @@ def image_preprocess(image_source):
         point3 = biggest[2]
         point4 = biggest[3]
     else:
-        height, width = image.shape[:2]
+        height, width = image_aux.shape[:2]
 
         # Set up the 4 points of the image based on the resolution of the picture, with an aspect ratio of 1:1.4
         point1 = np.array([width / 4, height / 4])
@@ -169,4 +177,4 @@ def image_preprocess(image_source):
         point3 = np.array([width / 4, int(3 * height / 4)])
         point4 = np.array([3 * width / 4, int(3 * height / 4)])
 
-    return point1, point2, point3, point4, image
+    return point1, point2, point3, point4
