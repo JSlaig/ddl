@@ -9,7 +9,7 @@ import documentPreprocessScanner as dps
 from screeninfo import get_monitors
 import utlis
 
-# ///////////////////////////////////// GLOBAL VARIABLES ///////////////////////////////////// 
+# ///////////////////////////////////// GLOBAL VARIABLES /////////////////////////////////////
 root = Tk()
 image = None
 lblImage = Label(root)
@@ -50,8 +50,8 @@ def run_gui() -> object:
 
 
 def motion(event):
-    x, y = event.x, event.y
-    print('{}, {}'.format(x, y))
+    mouse_x, mouse_y = event.x, event.y
+    print('x, y -> {}, {}'.format(mouse_x, mouse_y))
 
 
 # Method for starting preprocess of the image taking as input the webcam (MUST BE REARRANGED AND RE-FACTORIZED ONCE 
@@ -77,8 +77,7 @@ def load_image():
         # Get the auto-detected borders of the shape
         point1, point2, point3, point4, image = image_preprocess(image)
 
-        # Gotta loop this in order to find current mouse coordinates and refresh the position of each point
-
+        # Got to loop this in order to find current mouse coordinates and refresh the position of each point
 
 
         final_image = dps.draw_image_biggest_contour(point1, point2, point3, point4, image_copy)

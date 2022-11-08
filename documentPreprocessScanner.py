@@ -39,6 +39,10 @@ def get_image_contours(image, original):
     contours, hierarchy = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # FIND ALL CONTOURS
     return cv2.drawContours(original, contours, -1, (0, 255, 0), 10), contours  # DRAW ALL DETECTED CONTOURS
 
+def get_image_biggest_contour(contours):
+    biggest = np.array(contours)
+    biggest = utlis.reorder(biggest)
+    return biggest
 
 def get_image_biggest_contour(contours):
     # FIND THE BIGGEST CONTOUR
@@ -53,7 +57,6 @@ def draw_image_biggest_contour(point1, point2, point3, point4, image):
     cv2.drawContours(image, biggest, -1, (0, 255, 0), 20)  # DRAW THE BIGGEST CONTOUR
     utlis.draw_rectangle(image, biggest, 2)
     return image
-
 
 # Function is currently outdated, still maintaining it in here because I need some code contained inside, but the
 # whole branch of execution will be remade in order to work with the functions above in a loop with some changes
