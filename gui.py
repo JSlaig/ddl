@@ -38,6 +38,7 @@ windowHeight = 0
 windowWidth = 0
 mouse_x = 0
 mouse_y = 0
+mouse_1 = False
 
 
 # ///////////////////////////////////// METHODS ///////////////////////////////////// 
@@ -67,6 +68,8 @@ def run_gui() -> object:
     btn_camera.grid(column=2, row=0, padx=5, pady=5)
 
     root.bind('<Motion>', motion)
+    root.bind('<ButtonPress-1>', lclick_hold)
+    root.bind('<ButtonRelease-1>', lclick_release)
     root.mainloop()
 
 
@@ -74,6 +77,13 @@ def motion(event):
     mouse_x, mouse_y = event.x, event.y
     print('x, y -> {}, {}'.format(mouse_x, mouse_y))
 
+def lclick_hold(event):
+    mouse_1 = True
+    print('left click pressed!')
+
+def lclick_release(event):
+    mouse_1 = False
+    print('Left click released!')
 
 # Method for starting preprocess of the image taking as input the webcam (MUST BE REARRANGED AND RE-FACTORIZED ONCE 
 # LOAD-IMAGE VERSION IS ON A DECENT STAGE)
