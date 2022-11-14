@@ -97,11 +97,11 @@ def load_image():
         # When we resize the image here what we are really doing is lowering the actual resolution of the image
         # which alters the way the document shape is detected, which in some cases has helped to "autopinpoint" the
         # right shape but in others it might fuck it up.
-        image = imutils.resize(image, height=600)
-        cv2.imshow('preImage', image)
+        image_lowres = imutils.resize(image, height=600)
+        cv2.imshow('preImage', image_lowres)
 
         # Get the auto-detected borders of the shape
-        point1, point2, point3, point4 = detect_document_vertices(image)
+        point1, point2, point3, point4 = detect_document_vertices(image_lowres)
 
         print("--------------------------------------")
         print("Coordinates for vertices are: ")
@@ -120,7 +120,9 @@ def load_image():
                 # If mouse is pressed then we have to check the coordinates in order to change the value of them
                 # and the value must be refreshed on the screen as well, so the loop must start here until the end
 
-        final_image = dps.draw_image_biggest_contour(point1, point2, point3, point4, image)
+        # final_image is made for mere display purposes, since the actual image used for processing later on will be the
+        # original(high_res) and the coordinates scaled up to match the resolution of the original image
+        final_image = dps.draw_image_biggest_contour(point1, point2, point3, point4, image_lowres)
 
 
 
