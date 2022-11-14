@@ -49,9 +49,9 @@ def run_gui() -> object:
             main_monitor = m
 
     global windowWidth
-    windowWidth = int(main_monitor.height / 16 * 7)
+    windowWidth = int(main_monitor.width / 2)
     global windowHeight
-    windowHeight = int(main_monitor.width / 16 * 7)
+    windowHeight = int(main_monitor.height / 2)
 
     root.geometry(str(windowWidth) + "x" + str(windowHeight))
 
@@ -94,6 +94,12 @@ def load_image():
         # Read image on opencv
         image = cv2.imread(path)
 
+        # When we resize the image here what we are really doing is lowering the actual resolution of the image
+        # which alters the way the document shape is detected, which in some cases has helped to "autopinpoint" the
+        # right shape but in others it might fuck it up.
+        image = imutils.resize(image, height=600)
+        cv2.imshow('preImage', image)
+
         # Get the auto-detected borders of the shape
         point1, point2, point3, point4 = detect_document_vertices(image)
 
@@ -113,12 +119,14 @@ def load_image():
             #if app.mouse_pressed:
                 # If mouse is pressed then we have to check the coordinates in order to change the value of them
                 # and the value must be refreshed on the screen as well, so the loop must start here until the end
+
         final_image = dps.draw_image_biggest_contour(point1, point2, point3, point4, image)
 
 
 
         # Visualization of image in gui
         show_image = cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB) # Need to change the color scheme for proper visuals
+        show_image = imutils.resize(show_image, height=600)
         im = Image.fromarray(show_image)
         img = ImageTk.PhotoImage(image=im)
 
@@ -129,12 +137,8 @@ def load_image():
         lbl_info = Label(root, text="Input image")
         lbl_info.grid(column=0, row=1, padx=5, pady=5)
 
-        # Debugging for finding the actual optimal thresholds for the contour detection to be able to maximize its 
-        # accuracy
         final_image = imutils.resize(final_image, height=600)
-        image = imutils.resize(image, height=600)
         cv2.imshow('finalImage', final_image)
-        cv2.imshow('image', image)
         cv2.waitKey()
         cv2.destroyAllWindows()
 
