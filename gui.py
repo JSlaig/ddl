@@ -49,9 +49,9 @@ def run_gui() -> object:
             main_monitor = m
 
     global windowWidth
-    windowWidth = int(main_monitor.height / 16 * 7)
+    windowWidth = int(main_monitor.width / 2)
     global windowHeight
-    windowHeight = int(main_monitor.width / 16 * 7)
+    windowHeight = int(main_monitor.height / 2)
 
     root.geometry(str(windowWidth) + "x" + str(windowHeight))
 
@@ -59,7 +59,7 @@ def run_gui() -> object:
     lblImage.grid(column=0, row=2)
 
     # Image read button
-    btn_load = Button(root, text="load", width=25, command=load_image)
+    btn_load = Button(root, text="load", width=25, command=process_image)
     btn_load.grid(column=0, row=0, padx=5, pady=5)
 
     # Camera option button
@@ -93,50 +93,56 @@ def load_image():
 
         # Read image on opencv
         image = cv2.imread(path)
+    return image
 
-        # Get the auto-detected borders of the shape
-        point1, point2, point3, point4 = detect_document_vertices(image)
+# Common method continuation to either of the image loading methods
+def process_image():
 
-        print("--------------------------------------")
-        print("Coordinates for vertices are: ")
-        print(point1)
-        print(point2)
-        print(point3)
-        print(point4)
-        print("--------------------------------------")
+    image = load_image()
 
-        # Got to loop this in order to find current mouse coordinates and refresh the position of each point
-        # Loop must be constraint with the value of a button that actually stores the final vertices value in
-        # order to warp perspective afterwards
+    # Get the auto-detected borders of the shape
+    point1, point2, point3, point4 = detect_document_vertices(image)
 
-        #while True:
-            #if app.mouse_pressed:
-                # If mouse is pressed then we have to check the coordinates in order to change the value of them
-                # and the value must be refreshed on the screen as well, so the loop must start here until the end
-        final_image = dps.draw_image_biggest_contour(point1, point2, point3, point4, image)
+    print("--------------------------------------")
+    print("Coordinates for vertices are: ")
+    print(point1)
+    print(point2)
+    print(point3)
+    print(point4)
+    print("--------------------------------------")
+
+    # Got to loop this in order to find current mouse coordinates and refresh the position of each point
+    # Loop must be constraint with the value of a button that actually stores the final vertices value in
+    # order to warp perspective afterwards
+
+    #while True:
+        #if app.mouse_pressed:
+            # If mouse is pressed then we have to check the coordinates in order to change the value of them
+            # and the value must be refreshed on the screen as well, so the loop must start here until the end
+    final_image = dps.draw_image_contour(point1, point2, point3, point4, image)
 
 
 
-        # Visualization of image in gui
-        show_image = cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB) # Need to change the color scheme for proper visuals
-        im = Image.fromarray(show_image)
-        img = ImageTk.PhotoImage(image=im)
+    # Visualization of image in gui
+    show_image = cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB) # Need to change the color scheme for proper visuals
+    im = Image.fromarray(show_image)
+    img = ImageTk.PhotoImage(image=im)
 
-        lblImage.configure(image=img)
-        lblImage.image = img
+    lblImage.configure(image=img)
+    lblImage.image = img
 
-        # Label input image
-        lbl_info = Label(root, text="Input image")
-        lbl_info.grid(column=0, row=1, padx=5, pady=5)
+    # Label input image
+    lbl_info = Label(root, text="Input image")
+    lbl_info.grid(column=0, row=1, padx=5, pady=5)
 
-        # Debugging for finding the actual optimal thresholds for the contour detection to be able to maximize its 
-        # accuracy
-        final_image = imutils.resize(final_image, height=600)
-        image = imutils.resize(image, height=600)
-        cv2.imshow('finalImage', final_image)
-        cv2.imshow('image', image)
-        cv2.waitKey()
-        cv2.destroyAllWindows()
+    # Debugging for finding the actual optimal thresholds for the contour detection to be able to maximize its
+    # accuracy
+    final_image = imutils.resize(final_image, height=600)
+    image = imutils.resize(image, height=600)
+    cv2.imshow('finalImage', final_image)
+    cv2.imshow('image', image)
+    cv2.waitKey()
+    cv2.destroyAllWindows()
 
 
 # Parameter: Raw-Image
