@@ -9,35 +9,15 @@ import documentPreprocessScanner as dps
 from screeninfo import get_monitors
 import utlis
 
-
-# ///////////////////////////////////// CLASS /////////////////////////////////////
-class App:
-    def __init__(self, root):
-        self.root = root
-        self.mouse_pressed = False
-
-    def OnMouseDown(self, event):
-        self.mouse_pressed = True
-        self.poll()
-
-    def OnMouseUp(self, event):
-        self.root.after_cancel(self.after_id)
-
-    def poll(self):
-        if self.mouse_pressed:
-            self.do_work()
-            self.after_id = self.root.after(250, self.poll)
-
-
 # ///////////////////////////////////// GLOBAL VARIABLES /////////////////////////////////////
 root = Tk()
-app = App(root)
 image = None
 lblImage = Label(root)
 windowHeight = 0
 windowWidth = 0
 mouse_x = 0
 mouse_y = 0
+mouse_1 = False
 
 
 # ///////////////////////////////////// METHODS ///////////////////////////////////// 
@@ -59,7 +39,7 @@ def run_gui() -> object:
     lblImage.grid(column=0, row=2)
 
     # Image read button
-    btn_load = Button(root, text="load", width=25, command=process_image)
+    btn_load = Button(root, text="load", width=25, command=load_image)
     btn_load.grid(column=0, row=0, padx=5, pady=5)
 
     # Camera option button
@@ -67,6 +47,8 @@ def run_gui() -> object:
     btn_camera.grid(column=2, row=0, padx=5, pady=5)
 
     root.bind('<Motion>', motion)
+    root.bind('<ButtonPress-1>', lclick_hold)
+    root.bind('<ButtonRelease-1>', lclick_release)
     root.mainloop()
 
 
@@ -74,6 +56,15 @@ def motion(event):
     mouse_x, mouse_y = event.x, event.y
     print('x, y -> {}, {}'.format(mouse_x, mouse_y))
 
+def lclick_hold(event):
+    mouse_1 = True
+    print(mouse_1)
+    print('left click pressed!')
+
+def lclick_release(event):
+    mouse_1 = False
+    print(mouse_1)
+    print('Left click released!')
 
 # Method for starting preprocess of the image taking as input the webcam (MUST BE REARRANGED AND RE-FACTORIZED ONCE 
 # LOAD-IMAGE VERSION IS ON A DECENT STAGE)
@@ -93,56 +84,53 @@ def load_image():
 
         # Read image on opencv
         image = cv2.imread(path)
-    return image
 
-# Common method continuation to either of the image loading methods
-def process_image():
+        # When we resize the image here what we are really doing is lowering the actual resolution of the image
+        # which alters the way the document shape is detected, which in some cases has helped to "autopinpoint" the
+        # right shape but in others it might fuck it up.
+        image_lowres = imutils.resize(image, height=600)
+        #cv2.imshow('preImage', image_lowres)
 
-    image = load_image()
+        # Get the auto-detected borders of the shape
+        point1, point2, point3, point4 = detect_document_vertices(image_lowres)
 
-    # Get the auto-detected borders of the shape
-    point1, point2, point3, point4 = detect_document_vertices(image)
+        print("--------------------------------------")
+        print("Coordinates for vertices are: ")
+        print(point1)
+        print(point2)
+        print(point3)
+        print(point4)
+        print("--------------------------------------")
 
-    print("--------------------------------------")
-    print("Coordinates for vertices are: ")
-    print(point1)
-    print(point2)
-    print(point3)
-    print(point4)
-    print("--------------------------------------")
+        # Got to loop this in order to find current mouse coordinates and refresh the position of each point
+        # Loop must be constraint with the value of a button that actually stores the final vertices value in
+        # order to warp perspective afterwards
 
-    # Got to loop this in order to find current mouse coordinates and refresh the position of each point
-    # Loop must be constraint with the value of a button that actually stores the final vertices value in
-    # order to warp perspective afterwards
+        while True:
+            if mouse_1 == True:
+                # If mouse is pressed then we have to check the coordinates in order to change the value of them
+                # and the value must be refreshed on the screen as well, so the loop must start here until the end
+                if point1[0] <= mouse_x + 5 and point1[0] >= mouse_x - 5:
+                    point1[0] = mouse_x
 
-    #while True:
-        #if app.mouse_pressed:
-            # If mouse is pressed then we have to check the coordinates in order to change the value of them
-            # and the value must be refreshed on the screen as well, so the loop must start here until the end
-    final_image = dps.draw_image_contour(point1, point2, point3, point4, image)
+            # final_image is made for mere display purposes, since the actual image used for processing later on will be the
+            # original(high_res) and the coordinates scaled up to match the resolution of the original image
+            final_image = dps.draw_image_biggest_contour(point1, point2, point3, point4, image_lowres)
+
+            # Visualization of image in gui
+            show_image = cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB) # Need to change the color scheme for proper visuals
+            show_image = imutils.resize(show_image, height=600)
+            im = Image.fromarray(show_image)
+            img = ImageTk.PhotoImage(image=im)
+
+            lblImage.configure(image=img)
+            lblImage.image = img
+
+            # Label input image
+            lbl_info = Label(root, text="Input image")
+            lbl_info.grid(column=0, row=1, padx=5, pady=5)
 
 
-
-    # Visualization of image in gui
-    show_image = cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB) # Need to change the color scheme for proper visuals
-    im = Image.fromarray(show_image)
-    img = ImageTk.PhotoImage(image=im)
-
-    lblImage.configure(image=img)
-    lblImage.image = img
-
-    # Label input image
-    lbl_info = Label(root, text="Input image")
-    lbl_info.grid(column=0, row=1, padx=5, pady=5)
-
-    # Debugging for finding the actual optimal thresholds for the contour detection to be able to maximize its
-    # accuracy
-    final_image = imutils.resize(final_image, height=600)
-    image = imutils.resize(image, height=600)
-    cv2.imshow('finalImage', final_image)
-    cv2.imshow('image', image)
-    cv2.waitKey()
-    cv2.destroyAllWindows()
 
 
 # Parameter: Raw-Image
