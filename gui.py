@@ -76,10 +76,10 @@ def lclick_release(event):
 # the execution of the function where it is loaded comes to an end
 def exec1():
     # Load autodetected vertices for document with preview
-    point1, point2, point3, point4, lowres_image = load_image()
+    point1, point2, point3, point4, original = load_image()
 
     # Continuously reload the image in order to edit those vertices
-    refresh_image(point1)
+    refresh_image(point1, original)
 
 
 
@@ -140,22 +140,25 @@ def load_image():
         lbl_info = Label(root, text="Input image")
         lbl_info.grid(column=0, row=1, padx=5, pady=5)
 
-        return point1, point2, point3, point4, image_lowres
+        return point1, point2, point3, point4, image
 
 # Here I return the points value multiplied by a scalar so they match the original resolution picture's place
-def refresh_image(point1):
+def refresh_image(point1, original):
     # Loop will depent later on the state of a flag that saves the position of the points in that moment multiplied
     # by a scalar of the ration between the input and preview resolution
     if framed == True:
         return point1
     else:
-        if mouse_1 == True:
+        #if mouse_1 == True:
             # If mouse is pressed then we have to check the coordinates in order to change the value of them
             # and the value must be refreshed on the screen as well, so the loop must start here until the end
-            if point1[0] <= mouse_x + 5 and point1[0] >= mouse_x - 5:
-                point1[0] = mouse_x
+        #if point1[0] <= mouse_x + 5 and point1[0] >= mouse_x - 5:
+         #   point1[0] = mouse_x
+        newImage = dps.draw_image_biggest_contour(point1, point1, point1, point1, original)
+        lblImage.config(image=newImage)
 
-        return refresh_image(point1)
+        #return refresh_image(point1)
+        return point1
 
 
 
