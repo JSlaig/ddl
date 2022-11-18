@@ -19,8 +19,13 @@ mouse_x = 0
 mouse_y = 0
 mouse_1 = False
 
+# Flag for going to the next step once document vertices are manually tweaked
+framed = False
 
-# ///////////////////////////////////// METHODS ///////////////////////////////////// 
+
+# ///////////////////////////////////// INITIALIZATION METHODS /////////////////////////////////////
+
+# User Interface inicialization
 def run_gui() -> object:
     # Setting the window size based on the monitor resolution
     main_monitor = None
@@ -39,7 +44,7 @@ def run_gui() -> object:
     lblImage.grid(column=0, row=2)
 
     # Image read button
-    btn_load = Button(root, text="load", width=25, command=load_image)
+    btn_load = Button(root, text="load", width=25, command=exec1)
     btn_load.grid(column=0, row=0, padx=5, pady=5)
 
     # Camera option button
@@ -52,6 +57,7 @@ def run_gui() -> object:
     root.mainloop()
 
 
+# ///////////////////////////////////// EVENT METHODS /////////////////////////////////////
 def motion(event):
     mouse_x, mouse_y = event.x, event.y
     print('x, y -> {}, {}'.format(mouse_x, mouse_y))
@@ -66,7 +72,19 @@ def lclick_release(event):
     print(mouse_1)
     print('Left click released!')
 
-# Method for starting preprocess of the image taking as input the webcam (MUST BE REARRANGED AND RE-FACTORIZED ONCE 
+# I am going to separate the execution of the method from load image since I think image does not really load unless
+# the execution of the function where it is loaded comes to an end
+def exec1():
+    # Load autodetected vertices for document with preview
+    point1, point2, point3, point4, lowres_image = load_image()
+
+    # Continuously reload the image in order to edit those vertices
+    refresh_image(point1)
+
+
+
+
+# Method for starting preprocess of the image taking as input the webcam (MUST BE REARRANGED AND RE-FACTORIZED ONCE
 # LOAD-IMAGE VERSION IS ON A DECENT STAGE)
 def camera():
     dps.document_preprocess()
@@ -102,34 +120,42 @@ def load_image():
         print(point4)
         print("--------------------------------------")
 
-        # Got to loop this in order to find current mouse coordinates and refresh the position of each point
-        # Loop must be constraint with the value of a button that actually stores the final vertices value in
-        # order to warp perspective afterwards
+        # We'll do an initialization of how the first image autodetected looks and later on we will refresh the widget
+        # in order to update the position of the points that are the vertices of the document sheet
 
-        while True:
-            if mouse_1 == True:
-                # If mouse is pressed then we have to check the coordinates in order to change the value of them
-                # and the value must be refreshed on the screen as well, so the loop must start here until the end
-                if point1[0] <= mouse_x + 5 and point1[0] >= mouse_x - 5:
-                    point1[0] = mouse_x
+        # final_image is made for mere display purposes, since the actual image used for processing later on will be the
+        # original(high_res) and the coordinates scaled up to match the resolution of the original image
+        final_image = dps.draw_image_biggest_contour(point1, point2, point3, point4, image_lowres)
 
-            # final_image is made for mere display purposes, since the actual image used for processing later on will be the
-            # original(high_res) and the coordinates scaled up to match the resolution of the original image
-            final_image = dps.draw_image_biggest_contour(point1, point2, point3, point4, image_lowres)
+        # Visualization of image in gui
+        show_image = cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB)  # Need to change the color scheme for proper visuals
+        show_image = imutils.resize(show_image, height=600)
+        im = Image.fromarray(show_image)
+        img = ImageTk.PhotoImage(image=im)
 
-            # Visualization of image in gui
-            show_image = cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB) # Need to change the color scheme for proper visuals
-            show_image = imutils.resize(show_image, height=600)
-            im = Image.fromarray(show_image)
-            img = ImageTk.PhotoImage(image=im)
+        lblImage.configure(image=img)
+        lblImage.image = img
 
-            lblImage.configure(image=img)
-            lblImage.image = img
+        # Label input image
+        lbl_info = Label(root, text="Input image")
+        lbl_info.grid(column=0, row=1, padx=5, pady=5)
 
-            # Label input image
-            lbl_info = Label(root, text="Input image")
-            lbl_info.grid(column=0, row=1, padx=5, pady=5)
+        return point1, point2, point3, point4, image_lowres
 
+# Here I return the points value multiplied by a scalar so they match the original resolution picture's place
+def refresh_image(point1):
+    # Loop will depent later on the state of a flag that saves the position of the points in that moment multiplied
+    # by a scalar of the ration between the input and preview resolution
+    if framed == True:
+        return point1
+    else:
+        if mouse_1 == True:
+            # If mouse is pressed then we have to check the coordinates in order to change the value of them
+            # and the value must be refreshed on the screen as well, so the loop must start here until the end
+            if point1[0] <= mouse_x + 5 and point1[0] >= mouse_x - 5:
+                point1[0] = mouse_x
+
+        return refresh_image(point1)
 
 
 
