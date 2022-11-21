@@ -13,19 +13,13 @@ import utlis
 root = Tk()
 image = None
 lblImage = Label(root)
+canvas = Canvas(root, bg="red", height=300, width=300)
+_drag_data = {"x": 0, "y": 0, "item": None} # this data is used to keep track of an item being dragged
 windowHeight = 0
 windowWidth = 0
-mouse_x = 0
-mouse_y = 0
-mouse_1 = False
-
-# Flag for going to the next step once document vertices are manually tweaked
-framed = False
-
 
 # ///////////////////////////////////// INITIALIZATION METHODS /////////////////////////////////////
 
-# User Interface inicialization
 def run_gui() -> object:
     # Setting the window size based on the monitor resolution
     main_monitor = None
@@ -40,8 +34,13 @@ def run_gui() -> object:
 
     root.geometry(str(windowWidth) + "x" + str(windowHeight))
 
-    # Label where image will appear
-    lblImage.grid(column=0, row=2)
+    # Load image in a canvas to make it able to drag and drop vertices
+    canvas.grid(column=0, row=2)
+    canvas.pack(fill="both", expand=True)
+
+    # create a couple of movable objects
+    create_token(100, 100, "white")
+    create_token(200, 100, "black")
 
     # Image read button
     btn_load = Button(root, text="load", width=25, command=exec1)
@@ -51,26 +50,56 @@ def run_gui() -> object:
     btn_camera = Button(root, text="capture", width=25, command=camera)
     btn_camera.grid(column=2, row=0, padx=5, pady=5)
 
-    root.bind('<Motion>', motion)
-    root.bind('<ButtonPress-1>', lclick_hold)
-    root.bind('<ButtonRelease-1>', lclick_release)
+    # add bindings for clicking, dragging and releasing over
+    # any object with the "token" tag
+    canvas.tag_bind("token", "<ButtonPress-1>", drag_start)
+    canvas.tag_bind("token", "<ButtonRelease-1>", drag_stop)
+    canvas.tag_bind("token", "<B1-Motion>", drag)
+
     root.mainloop()
 
+    def create_token(x, y, color):
+        """Create a token at the given coordinate in the given color"""
+        canvas.create_oval(
+            x - 25,
+            y - 25,
+            x + 25,
+            y + 25,
+            outline=color,
+            fill=color,
+            tags=("token",),
+        )
 
 # ///////////////////////////////////// EVENT METHODS /////////////////////////////////////
-def motion(event):
-    mouse_x, mouse_y = event.x, event.y
-    print('x, y -> {}, {}'.format(mouse_x, mouse_y))
+def drag_start(self, event):
+    """Begining drag of an object"""
+    # record the item and its location
+    self._drag_data["item"] = self.canvas.find_closest(event.x, event.y)[0]
+    self._drag_data["x"] = event.x
+    self._drag_data["y"] = event.y
 
-def lclick_hold(event):
-    mouse_1 = True
-    print(mouse_1)
-    print('left click pressed!')
 
-def lclick_release(event):
-    mouse_1 = False
-    print(mouse_1)
-    print('Left click released!')
+def drag_stop(self, event):
+    """End drag of an object"""
+    # reset the drag information
+    self._drag_data["item"] = None
+    self._drag_data["x"] = 0
+    self._drag_data["y"] = 0
+
+
+def drag(self, event):
+    """Handle dragging of an object"""
+    # compute how much the mouse has moved
+    delta_x = event.x - self._drag_data["x"]
+    delta_y = event.y - self._drag_data["y"]
+    # move the object the appropriate amount
+    self.canvas.move(self._drag_data["item"], delta_x, delta_y)
+    # record the new position
+    self._drag_data["x"] = event.x
+    self._drag_data["y"] = event.y
+
+
+# ///////////////////////////////////// REGULAR METHODS /////////////////////////////////////
 
 # I am going to separate the execution of the method from load image since I think image does not really load unless
 # the execution of the function where it is loaded comes to an end
@@ -78,10 +107,8 @@ def exec1():
     # Load autodetected vertices for document with preview
     point1, point2, point3, point4, original = load_image()
 
-    # Continuously reload the image in order to edit those vertices
-    refresh_image(point1, original)
-
-
+    # Continuously reload the image in order to edit those vertices probably not going to work this way
+    # refresh_image(point1, original)
 
 
 # Method for starting preprocess of the image taking as input the webcam (MUST BE REARRANGED AND RE-FACTORIZED ONCE
@@ -106,11 +133,11 @@ def load_image():
         # When we resize the image here what we are really doing is lowering the actual resolution of the image
         # which alters the way the document shape is detected, which in some cases has helped to "autopinpoint" the
         # right shape but in others it might fuck it up.
-        image_lowres = imutils.resize(image, height=600)
+        #image_lowres = imutils.resize(image, height=600)
         #cv2.imshow('preImage', image_lowres)
 
         # Get the auto-detected borders of the shape
-        point1, point2, point3, point4 = detect_document_vertices(image_lowres)
+        point1, point2, point3, point4 = detect_document_vertices(image)
 
         print("--------------------------------------")
         print("Coordinates for vertices are: ")
@@ -125,41 +152,25 @@ def load_image():
 
         # final_image is made for mere display purposes, since the actual image used for processing later on will be the
         # original(high_res) and the coordinates scaled up to match the resolution of the original image
-        final_image = dps.draw_image_biggest_contour(point1, point2, point3, point4, image_lowres)
+        final_image = dps.draw_image_biggest_contour(point1, point2, point3, point4, image)
 
         # Visualization of image in gui
         show_image = cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB)  # Need to change the color scheme for proper visuals
-        show_image = imutils.resize(show_image, height=600)
+        #show_image = imutils.resize(show_image, height=600)
         im = Image.fromarray(show_image)
         img = ImageTk.PhotoImage(image=im)
 
-        lblImage.configure(image=img)
-        lblImage.image = img
+        # Resize canvas to fit exact same size as the picture
+        img_width = img.width()
+        img_height = img.height()
+        canvas.config(width=img_width, height=img_height)
+        canvas.config(bg=img)
 
         # Label input image
         lbl_info = Label(root, text="Input image")
         lbl_info.grid(column=0, row=1, padx=5, pady=5)
 
-        return point1, point2, point3, point4, image
-
-# Here I return the points value multiplied by a scalar so they match the original resolution picture's place
-def refresh_image(point1, original):
-    # Loop will depent later on the state of a flag that saves the position of the points in that moment multiplied
-    # by a scalar of the ration between the input and preview resolution
-    if framed == True:
-        return point1
-    else:
-        #if mouse_1 == True:
-            # If mouse is pressed then we have to check the coordinates in order to change the value of them
-            # and the value must be refreshed on the screen as well, so the loop must start here until the end
-        #if point1[0] <= mouse_x + 5 and point1[0] >= mouse_x - 5:
-         #   point1[0] = mouse_x
-        newImage = dps.draw_image_biggest_contour(point1, point1, point1, point1, original)
-        lblImage.config(image=newImage)
-
-        #return refresh_image(point1)
-        return point1
-
+        return point1, point2, point3, point4, img
 
 
 # Parameter: Raw-Image
