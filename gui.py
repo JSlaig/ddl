@@ -20,7 +20,9 @@ windowWidth = 0
 
 # ///////////////////////////////////// INITIALIZATION METHODS /////////////////////////////////////
 
-def run_gui() -> object:
+def __init__(self, parent):
+
+    Frame.__init__(self, parent)
     # Setting the window size based on the monitor resolution
     main_monitor = None
     for m in get_monitors():
@@ -35,12 +37,8 @@ def run_gui() -> object:
     root.geometry(str(windowWidth) + "x" + str(windowHeight))
 
     # Load image in a canvas to make it able to drag and drop vertices
-    canvas.grid(column=0, row=2)
-    canvas.pack(fill="both", expand=True)
-
-    # create a couple of movable objects
-    create_token(100, 100, "white")
-    create_token(200, 100, "black")
+    self.canvas.grid(column=0, row=2)
+    #canvas.pack(fill="both", expand=True)
 
     # Image read button
     btn_load = Button(root, text="load", width=25, command=exec1)
@@ -52,23 +50,23 @@ def run_gui() -> object:
 
     # add bindings for clicking, dragging and releasing over
     # any object with the "token" tag
-    canvas.tag_bind("token", "<ButtonPress-1>", drag_start)
-    canvas.tag_bind("token", "<ButtonRelease-1>", drag_stop)
-    canvas.tag_bind("token", "<B1-Motion>", drag)
+    self.canvas.tag_bind("token", "<ButtonPress-1>", self.drag_start)
+    self.canvas.tag_bind("token", "<ButtonRelease-1>", self.drag_stop)
+    self.canvas.tag_bind("token", "<B1-Motion>", self.drag)
 
     root.mainloop()
 
-    def create_token(x, y, color):
-        """Create a token at the given coordinate in the given color"""
-        canvas.create_oval(
-            x - 25,
-            y - 25,
-            x + 25,
-            y + 25,
-            outline=color,
-            fill=color,
-            tags=("token",),
-        )
+def create_token(self, x, y, color):
+    """Create a token at the given coordinate in the given color"""
+    self.canvas.create_oval(
+        x - 25,
+        y - 25,
+        x + 25,
+        y + 25,
+        outline=color,
+        fill=color,
+        tags=("token",),
+    )
 
 # ///////////////////////////////////// EVENT METHODS /////////////////////////////////////
 def drag_start(self, event):
@@ -164,6 +162,9 @@ def load_image():
         img_width = img.width()
         img_height = img.height()
         canvas.config(width=img_width, height=img_height)
+        # create a couple of movable objects
+        create_token(100, 100, "white")
+        create_token(200, 100, "black")
         canvas.config(bg=img)
 
         # Label input image
