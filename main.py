@@ -1,4 +1,4 @@
 import gui
 
 # Start GUI
-gui.run_gui()
+gui.__init__()
