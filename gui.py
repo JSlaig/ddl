@@ -1,14 +1,14 @@
-import tkinter as tk    # python 3
+import tkinter as tk  # python 3
 from tkinter import *
 from tkinter import filedialog
+
+import cv2
+import numpy as np
 from PIL import Image
 from PIL import ImageTk
-import imutils
-import numpy as np
-import cv2
-import documentPreprocessScanner as dps
 from screeninfo import get_monitors
-import utlis
+
+import documentPreprocessScanner as dps
 
 # ///////////////////////////////////// ATTRIBUTES OF GUI /////////////////////////////////////
 root = Tk()  # Assignation of root window
@@ -24,8 +24,12 @@ class Canvas(tk.Frame):
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
 
+        # Init values for width and height of the canvas
+        self.width = 400
+        self.height = 400
+
         # create a canvas
-        self.canvas = tk.Canvas(width=400, height=400, background="black")
+        self.canvas = tk.Canvas(width=self.width, height=self.height, background="black")
         self.canvas.grid(column=0, row=3, padx=5, pady=5)
 
 
@@ -34,10 +38,14 @@ class Canvas(tk.Frame):
         self._drag_data = {"x": 0, "y": 0, "item": None}
 
         # create a couple of movable objects
-        self.create_token(100, 100, "green")
-        self.create_token(200, 100, "green")
-        self.create_token(100, 200, "green")
-        self.create_token(200, 200, "green")
+        p1 = [100, 100]
+        p2 = [200, 100]
+        p3 = [200, 200]
+        p4 = [100, 200]
+
+        self.create_tokens(p1, p2, p3, p4, "green")
+        self.draw_lines(p1, p2, p3, p4)
+
 
         # add bindings for clicking, dragging and releasing over
         # any object with the "token" tag
@@ -46,32 +54,85 @@ class Canvas(tk.Frame):
         self.canvas.tag_bind("token", "<B1-Motion>", self.drag)
 
     def set_canvas_size(self, width, height):
+        self.width = width
         self.canvas.config(width=width)
+
+        self.height = height
         self.canvas.config(height=height)
 
-    def create_token(self, x, y, color):
+    def create_tokens(self, p1, p2, p3, p4, color):
         """Create a token at the given coordinate in the given color"""
         self.canvas.create_oval(
-            x - 10,
-            y - 10,
-            x + 10,
-            y + 10,
+            p1[0] - 10,
+            p1[1] - 10,
+            p1[0] + 10,
+            p1[1] + 10,
+            outline=color,
+            fill=color,
+            tags=("token", ),
+        )
+        self.canvas.create_oval(
+            p2[0] - 10,
+            p2[1] - 10,
+            p2[0] + 10,
+            p2[1] + 10,
+            outline=color,
+            fill=color,
+            tags=("token",),
+        )
+        self.canvas.create_oval(
+            p3[0] - 10,
+            p3[1] - 10,
+            p3[0] + 10,
+            p3[1] + 10,
+            outline=color,
+            fill=color,
+            tags=("token",),
+        )
+        self.canvas.create_oval(
+            p4[0] - 10,
+            p4[1] - 10,
+            p4[0] + 10,
+            p4[1] + 10,
             outline=color,
             fill=color,
             tags=("token",),
         )
 
+    def draw_lines(self, p1, p2, p3, p4):
+        self.canvas.create_line(p1[0], p1[1], p2[0], p2[1], fill="green", width=2, tags="line")
+        self.canvas.create_line(p2[0], p2[1], p3[0], p3[1], fill="green", width=2, tags="line")
+        self.canvas.create_line(p3[0], p3[1], p4[0], p4[1], fill="green", width=2, tags="line")
+        self.canvas.create_line(p4[0], p4[1], p1[0], p1[1], fill="green", width=2, tags="line")
+
+    def erase_lines(self):
+        self.canvas.delete("line")
+
+    def get_tokens(self):
+        t1 = self.canvas.coords(self.canvas.find_closest(0, 0)[0])
+        t2 = self.canvas.coords(self.canvas.find_closest(self.width, 0)[0])
+        t3 = self.canvas.coords(self.canvas.find_closest(self.width, self.height)[0])
+        t4 = self.canvas.coords(self.canvas.find_closest(0, self.height)[0])
+
+        p1 = [int((t1[0] + t1[2]) / 2), int((t1[1] + t1[3]) / 2)]
+        p2 = [int((t2[0] + t2[2]) / 2), int((t2[1] + t2[3]) / 2)]
+        p3 = [int((t3[0] + t3[2]) / 2), int((t3[1] + t3[3]) / 2)]
+        p4 = [int((t4[0] + t4[2]) / 2), int((t4[1] + t4[3]) / 2)]
+
+        return p1, p2, p3, p4
+
     def drag_start(self, event):
         """Begining drag of an object"""
         # record the item and its location
-        self._drag_data["item"] = self.canvas.find_closest(event.x, event.y)[0]
+        self._drag_data["token"] = self.canvas.find_closest(event.x, event.y)[0]
         self._drag_data["x"] = event.x
         self._drag_data["y"] = event.y
+
 
     def drag_stop(self, event):
         """End drag of an object"""
         # reset the drag information
-        self._drag_data["item"] = None
+        self._drag_data["token"] = None
         self._drag_data["x"] = 0
         self._drag_data["y"] = 0
 
@@ -81,7 +142,13 @@ class Canvas(tk.Frame):
         delta_x = event.x - self._drag_data["x"]
         delta_y = event.y - self._drag_data["y"]
         # move the object the appropriate amount
-        self.canvas.move(self._drag_data["item"], delta_x, delta_y)
+
+        self.canvas.move(self._drag_data["token"], delta_x, delta_y)
+        self.erase_lines()
+        p1, p2, p3, p4 = self.get_tokens()
+        self.draw_lines(p1, p2, p3, p4)
+
+
         # record the new position
         self._drag_data["x"] = event.x
         self._drag_data["y"] = event.y
