@@ -3,6 +3,7 @@ from tkinter import *
 from tkinter import filedialog
 
 import cv2
+import imutils
 import numpy as np
 from PIL import Image
 from PIL import ImageTk
@@ -17,35 +18,40 @@ root.title('DocClone')  # Assignation of the window title
 image = None
 lblImage = Label(root)
 
+
 # ///////////////////////////////////// CLASSES /////////////////////////////////////
-class Canvas(tk.Frame):
+class ShapeCropper(tk.Frame):
     """Illustrate how to drag items on a Tkinter canvas"""
 
-    def __init__(self, parent):
+    def __init__(self, parent, width, height, p1, p2, p3, p4, img):
         tk.Frame.__init__(self, parent)
 
+        # Image we are setting as a background
+        self.image = img
+
         # Init values for width and height of the canvas
-        self.width = 400
-        self.height = 400
+        self.width = width
+        self.height = height
 
         # create a canvas
         self.canvas = tk.Canvas(width=self.width, height=self.height, background="black")
         self.canvas.grid(column=0, row=3, padx=5, pady=5)
 
+        # Creation of the image in the canvas
+        self.canvas.create_image(0, 0, image=self.image, anchor='nw', state='disabled', tags='image')
 
         # This data is used to keep track of an
         # item being dragged
         self._drag_data = {"x": 0, "y": 0, "item": None}
 
-        # create a couple of movable objects
-        p1 = [100, 100]
-        p2 = [200, 100]
-        p3 = [200, 200]
-        p4 = [100, 200]
+        # Creation of the original points
+        self.p1 = p1
+        self.p2 = p2
+        self.p3 = p3
+        self.p4 = p4
 
         self.create_tokens(p1, p2, p3, p4, "green")
         self.draw_lines(p1, p2, p3, p4)
-
 
         # add bindings for clicking, dragging and releasing over
         # any object with the "token" tag
@@ -53,57 +59,52 @@ class Canvas(tk.Frame):
         self.canvas.tag_bind("token", "<ButtonRelease-1>", self.drag_stop)
         self.canvas.tag_bind("token", "<B1-Motion>", self.drag)
 
-    def set_canvas_size(self, width, height):
-        self.width = width
-        self.canvas.config(width=width)
-
-        self.height = height
-        self.canvas.config(height=height)
-
     def create_tokens(self, p1, p2, p3, p4, color):
         """Create a token at the given coordinate in the given color"""
         self.canvas.create_oval(
-            p1[0] - 10,
-            p1[1] - 10,
-            p1[0] + 10,
-            p1[1] + 10,
-            outline=color,
-            fill=color,
-            tags=("token", ),
-        )
-        self.canvas.create_oval(
-            p2[0] - 10,
-            p2[1] - 10,
-            p2[0] + 10,
-            p2[1] + 10,
+            p1[0][0] - 10,
+            p1[0][1] - 10,
+            p1[0][0] + 10,
+            p1[0][1] + 10,
             outline=color,
             fill=color,
             tags=("token",),
         )
         self.canvas.create_oval(
-            p3[0] - 10,
-            p3[1] - 10,
-            p3[0] + 10,
-            p3[1] + 10,
+            p2[0][0] - 10,
+            p2[0][1] - 10,
+            p2[0][0] + 10,
+            p2[0][1] + 10,
             outline=color,
             fill=color,
             tags=("token",),
         )
         self.canvas.create_oval(
-            p4[0] - 10,
-            p4[1] - 10,
-            p4[0] + 10,
-            p4[1] + 10,
+            p3[0][0] - 10,
+            p3[0][1] - 10,
+            p3[0][0] + 10,
+            p3[0][1] + 10,
+            outline=color,
+            fill=color,
+            tags=("token",),
+        )
+        self.canvas.create_oval(
+            p4[0][0] - 10,
+            p4[0][1] - 10,
+            p4[0][0] + 10,
+            p4[0][1] + 10,
             outline=color,
             fill=color,
             tags=("token",),
         )
 
     def draw_lines(self, p1, p2, p3, p4):
-        self.canvas.create_line(p1[0], p1[1], p2[0], p2[1], fill="green", width=2, tags="line")
-        self.canvas.create_line(p2[0], p2[1], p3[0], p3[1], fill="green", width=2, tags="line")
-        self.canvas.create_line(p3[0], p3[1], p4[0], p4[1], fill="green", width=2, tags="line")
-        self.canvas.create_line(p4[0], p4[1], p1[0], p1[1], fill="green", width=2, tags="line")
+        self.canvas.create_line(p1[0][0], p1[0][1], p2[0][0], p2[0][1], fill="green", width=2, tags="line")
+        self.canvas.create_line(p2[0][0], p2[0][1], p3[0][0], p3[0][1], fill="green", width=2, tags="line")
+        self.canvas.create_line(p3[0][0], p3[0][1], p4[0][0], p4[0][1], fill="green", width=2, tags="line")
+        self.canvas.create_line(p4[0][0], p4[0][1], p1[0][0], p1[0][1], fill="green", width=2, tags="line")
+        self.canvas.tag_lower("line")
+        self.canvas.tag_lower("image")
 
     def erase_lines(self):
         self.canvas.delete("line")
@@ -114,10 +115,10 @@ class Canvas(tk.Frame):
         t3 = self.canvas.coords(self.canvas.find_closest(self.width, self.height)[0])
         t4 = self.canvas.coords(self.canvas.find_closest(0, self.height)[0])
 
-        p1 = [int((t1[0] + t1[2]) / 2), int((t1[1] + t1[3]) / 2)]
-        p2 = [int((t2[0] + t2[2]) / 2), int((t2[1] + t2[3]) / 2)]
-        p3 = [int((t3[0] + t3[2]) / 2), int((t3[1] + t3[3]) / 2)]
-        p4 = [int((t4[0] + t4[2]) / 2), int((t4[1] + t4[3]) / 2)]
+        p1 = [[int((t1[0] + t1[2]) / 2), int((t1[1] + t1[3]) / 2)]]
+        p2 = [[int((t2[0] + t2[2]) / 2), int((t2[1] + t2[3]) / 2)]]
+        p3 = [[int((t3[0] + t3[2]) / 2), int((t3[1] + t3[3]) / 2)]]
+        p4 = [[int((t4[0] + t4[2]) / 2), int((t4[1] + t4[3]) / 2)]]
 
         return p1, p2, p3, p4
 
@@ -127,7 +128,6 @@ class Canvas(tk.Frame):
         self._drag_data["token"] = self.canvas.find_closest(event.x, event.y)[0]
         self._drag_data["x"] = event.x
         self._drag_data["y"] = event.y
-
 
     def drag_stop(self, event):
         """End drag of an object"""
@@ -148,14 +148,13 @@ class Canvas(tk.Frame):
         p1, p2, p3, p4 = self.get_tokens()
         self.draw_lines(p1, p2, p3, p4)
 
-
         # record the new position
         self._drag_data["x"] = event.x
         self._drag_data["y"] = event.y
 
+
 # ///////////////////////////////////// METHODS /////////////////////////////////////
 def run_gui() -> object:
-
     # Setting the window size based on the monitor resolution
     main_monitor = None
     for m in get_monitors():
@@ -182,9 +181,6 @@ def run_gui() -> object:
     # Label where image will appear
     lblImage.grid(column=0, row=2)
 
-    # Canvas to show the picture
-    Canvas(root).grid(column=0, row=3, padx=5, pady=5)
-
     root.mainloop()
 
 
@@ -207,48 +203,54 @@ def load_image():
         # Read image on opencv
         image = cv2.imread(path)
 
-        # When we resize the image here what we are really doing is lowering the actual resolution of the image
-        # which alters the way the document shape is detected, which in some cases has helped to "autopinpoint" the
-        # right shape but in others it might fuck it up.
-        #image_lowres = imutils.resize(image, height=600)
-        #cv2.imshow('preImage', image_lowres)
+        # Visualization of image in gui
+        show_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # Need to change the color scheme for proper visuals
+        show_image_small = imutils.resize(show_image, height=600)
+        im = Image.fromarray(show_image_small)
+        img = ImageTk.PhotoImage(image=im)
 
-        # Get the auto-detected borders of the shape
+        # Resize canvas to fit exact same size as the picture
+        img_width = img.width()
+        img_height = img.height()
+
+        # Calculate the new coordinates for the points since the original image has been resized
+        original_im = Image.fromarray(show_image)
+        original_image = ImageTk.PhotoImage(image=original_im)
+
+        original_width = original_image.width()
+        original_height = original_image.height()
+
+        width_ratio = original_width / img_width
+        height_ratio = original_height / img_height
+
+        print(width_ratio)
+        print(height_ratio)
+
+        # Get the original vertices
         point1, point2, point3, point4 = detect_document_vertices(image)
 
-        print("--------------------------------------")
-        print("Coordinates for vertices are: ")
-        print(point1)
-        print(point2)
-        print(point3)
-        print(point4)
-        print("--------------------------------------")
+        point1[0][0] = point1[0][0] / width_ratio
+        point1[0][1] = point1[0][1] / height_ratio
+
+        point2[0][0] = point2[0][0] / width_ratio
+        point2[0][1] = point2[0][1] / height_ratio
+
+        point3[0][0] = point3[0][0] / width_ratio
+        point3[0][1] = point3[0][1] / height_ratio
+
+        point4[0][0] = point4[0][0] / width_ratio
+        point4[0][1] = point4[0][1] / height_ratio
+
+        # Canvas to show the picture
+        ShapeCropper(root, img_width, img_height, point1, point2, point3, point4, img).grid(column=0, row=3, padx=5,
+                                                                                            pady=5)
 
         # We'll do an initialization of how the first image autodetected looks and later on we will refresh the widget
         # in order to update the position of the points that are the vertices of the document sheet
 
         # final_image is made for mere display purposes, since the actual image used for processing later on will be the
         # original(high_res) and the coordinates scaled up to match the resolution of the original image
-        final_image = dps.draw_image_biggest_contour(point1, point2, point3, point4, image)
-
-        # Visualization of image in gui
-        show_image = cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB)  # Need to change the color scheme for proper visuals
-        #show_image = imutils.resize(show_image, height=600)
-        im = Image.fromarray(show_image)
-        img = ImageTk.PhotoImage(image=im)
-
-        # Resize canvas to fit exact same size as the picture
-        img_width = img.width()
-        img_height = img.height()
-        #canvas.config(width=img_width, height=img_height)
-        # create a couple of movable objects
-        #create_token(100, 100, "white")
-        #create_token(200, 100, "black")
-        #canvas.config(bg=img)
-
-        # Label input image
-        lbl_info = Label(root, text="Input image")
-        lbl_info.grid(column=0, row=1, padx=5, pady=5)
+        # final_image = dps.draw_image_contour(point1, point2, point3, point4, image)
 
         return point1, point2, point3, point4, img
 
