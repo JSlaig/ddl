@@ -38,7 +38,7 @@ class ShapeCropper(tk.Frame):
         self.canvas.grid(column=0, row=3, padx=5, pady=5)
 
         # Creation of the image in the canvas
-        self.canvas.create_image(0, 0, image=self.image, anchor='nw', state='disabled', tags='image')
+        #self.canvas.create_image(0, 0, image=self.image, anchor='nw', tags='image')
 
         # This data is used to keep track of an
         # item being dragged
@@ -241,16 +241,9 @@ def load_image():
         point4[0][0] = point4[0][0] / width_ratio
         point4[0][1] = point4[0][1] / height_ratio
 
-        # Canvas to show the picture
+        # Canvas to show the picture and modify the vertices
         ShapeCropper(root, img_width, img_height, point1, point2, point3, point4, img).grid(column=0, row=3, padx=5,
                                                                                             pady=5)
-
-        # We'll do an initialization of how the first image autodetected looks and later on we will refresh the widget
-        # in order to update the position of the points that are the vertices of the document sheet
-
-        # final_image is made for mere display purposes, since the actual image used for processing later on will be the
-        # original(high_res) and the coordinates scaled up to match the resolution of the original image
-        # final_image = dps.draw_image_contour(point1, point2, point3, point4, image)
 
         return point1, point2, point3, point4, img
 
