@@ -38,7 +38,7 @@ class ShapeCropper(tk.Frame):
         self.canvas.grid(column=0, row=3, padx=5, pady=5)
 
         # Creation of the image in the canvas
-        #self.canvas.create_image(0, 0, image=self.image, anchor='nw', tags='image')
+        self.canvas.create_image(0, 0, image=self.image, anchor='nw', tags='image')
 
         # This data is used to keep track of an
         # item being dragged
@@ -110,10 +110,15 @@ class ShapeCropper(tk.Frame):
         self.canvas.delete("line")
 
     def get_tokens(self):
-        t1 = self.canvas.coords(self.canvas.find_closest(0, 0)[0])
-        t2 = self.canvas.coords(self.canvas.find_closest(self.width, 0)[0])
-        t3 = self.canvas.coords(self.canvas.find_closest(self.width, self.height)[0])
-        t4 = self.canvas.coords(self.canvas.find_closest(0, self.height)[0])
+
+        tokens = self.canvas.find_withtag("token")
+
+        t1 = self.canvas.coords(tokens[0])
+        t2 = self.canvas.coords(tokens[1])
+        t3 = self.canvas.coords(tokens[2])
+        t4 = self.canvas.coords(tokens[3])
+
+        print(t1)
 
         p1 = [[int((t1[0] + t1[2]) / 2), int((t1[1] + t1[3]) / 2)]]
         p2 = [[int((t2[0] + t2[2]) / 2), int((t2[1] + t2[3]) / 2)]]
@@ -139,11 +144,19 @@ class ShapeCropper(tk.Frame):
     def drag(self, event):
         """Handle dragging of an object"""
         # compute how much the mouse has moved
+
         delta_x = event.x - self._drag_data["x"]
         delta_y = event.y - self._drag_data["y"]
-        # move the object the appropriate amount
+
+        # move the object the appropriate amount taking into account the boundaries of the image
+        if event.x < 0 or event.x > self.width:
+            delta_x = 0
+
+        if event.y < 0 or event.y > self.height:
+            delta_y = 0
 
         self.canvas.move(self._drag_data["token"], delta_x, delta_y)
+
         self.erase_lines()
         p1, p2, p3, p4 = self.get_tokens()
         self.draw_lines(p1, p2, p3, p4)
@@ -227,7 +240,7 @@ def load_image():
         print(height_ratio)
 
         # Get the original vertices
-        point1, point2, point3, point4 = detect_document_vertices(image)
+        point1, point2, point3, point4 = dps.detect_document_vertices(image)
 
         point1[0][0] = point1[0][0] / width_ratio
         point1[0][1] = point1[0][1] / height_ratio
@@ -246,44 +259,3 @@ def load_image():
                                                                                             pady=5)
 
         return point1, point2, point3, point4, img
-
-
-# Parameter: Raw-Image
-# Return_Value: Estimated vertices of the document contained in the image
-# Observations: Originally it already returned the modified image with the contour, but since I want to enable contours
-#               to be edited after the initial estimation, the function will only return the vertices coordinates.
-def detect_document_vertices(image_source):
-    image_aux = image_source
-
-    # Copy of the original image
-    original_image = image_aux.copy()
-
-    # Firstly, we turn the image into grayScale
-    image_aux = dps.get_image_grayscale(image_aux)
-
-    # Secondly, we run edge detector through the image
-    image_aux = dps.get_image_edge_detector(image_aux)
-
-    # Thirdly, we have to find the contours present in the picture
-    image_aux, contours = dps.get_image_contours(image_aux, original_image)
-
-    # Fourth step is to find the actual biggest contour and draw it on the image
-    biggest = dps.get_image_biggest_contour(contours)
-
-    # We get the coordinates for the vertices of the shape
-
-    if biggest.size != 0:
-        point1 = biggest[0]
-        point2 = biggest[1]
-        point3 = biggest[2]
-        point4 = biggest[3]
-    else:
-        height, width = image_aux.shape[:2]
-
-        # Set up the 4 points of the image based on the resolution of the picture, with an aspect ratio of 1:1.4
-        point1 = np.array([width / 4, height / 4])
-        point2 = np.array([3 * width / 4, height / 4])
-        point3 = np.array([width / 4, int(3 * height / 4)])
-        point4 = np.array([3 * width / 4, int(3 * height / 4)])
-
-    return point1, point2, point3, point4
