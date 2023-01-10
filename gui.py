@@ -164,7 +164,6 @@ class ShapeCropper(tk.Frame):
         self._drag_data["y"] = event.y
 
 
-
 # ///////////////////////////////////// METHODS /////////////////////////////////////
 def run_gui() -> object:
     # Setting the window size based on the monitor resolution
@@ -254,7 +253,16 @@ def load_image():
         point4[0][1] = point4[0][1] / height_ratio
 
         # Canvas to show the picture and modify the vertices
-        ShapeCropper(root, img_width, img_height, point1, point2, point3, point4, img).grid(column=0, row=3, padx=5,
-                                                                                            pady=5)
+        shape_cropper = ShapeCropper(root, img_width, img_height, point1, point2, point3, point4, img)
+        shape_cropper.grid(column=0, row=3, padx=5, pady=5)
+
+        btn_next = Button(root, text="next", width=25, command= lambda: get_coords(shape_cropper))
+        btn_next.grid(column=0, row=5, padx=5, pady=5)
 
         return point1, point2, point3, point4, img
+
+
+def get_coords(shape_cropper):
+    values = shape_cropper.get_tokens()
+    print("values: ")
+    print(values)
