@@ -118,8 +118,6 @@ class ShapeCropper(tk.Frame):
         t3 = self.canvas.coords(tokens[2])
         t4 = self.canvas.coords(tokens[3])
 
-        print(t1)
-
         p1 = [[int((t1[0] + t1[2]) / 2), int((t1[1] + t1[3]) / 2)]]
         p2 = [[int((t2[0] + t2[2]) / 2), int((t2[1] + t2[3]) / 2)]]
         p3 = [[int((t3[0] + t3[2]) / 2), int((t3[1] + t3[3]) / 2)]]
@@ -166,6 +164,7 @@ class ShapeCropper(tk.Frame):
         self._drag_data["y"] = event.y
 
 
+
 # ///////////////////////////////////// METHODS /////////////////////////////////////
 def run_gui() -> object:
     # Setting the window size based on the monitor resolution
@@ -175,9 +174,9 @@ def run_gui() -> object:
             main_monitor = m
 
     global windowWidth
-    windowWidth = int(main_monitor.width / 2)
+    windowWidth = int(3 * main_monitor.width / 4)
     global windowHeight
-    windowHeight = int(main_monitor.height / 2)
+    windowHeight = int(3 * main_monitor.height / 4)
 
     root.geometry(str(windowWidth) + "x" + str(windowHeight))
 
