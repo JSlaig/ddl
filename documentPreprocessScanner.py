@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+
 import utlis
 
 
@@ -40,23 +41,58 @@ def get_image_contours(image, original):
     return cv2.drawContours(original, contours, -1, (0, 255, 0), 10), contours  # DRAW ALL DETECTED CONTOURS
 
 def get_image_biggest_contour(contours):
-    biggest = np.array(contours)
-    biggest = utlis.reorder(biggest)
-    return biggest
-
-def get_image_biggest_contour(contours):
     # FIND THE BIGGEST CONTOUR
     biggest, max_area = utlis.biggest_contour(contours)  # FIND THE BIGGEST CONTOUR
 
     return biggest
 
-
-def draw_image_biggest_contour(point1, point2, point3, point4, image):
+def draw_image_contour(point1, point2, point3, point4, image):
     biggest = np.array([[point1], [point2], [point3], [point4]])
     biggest = utlis.reorder(biggest)
     cv2.drawContours(image, biggest, -1, (0, 255, 0), 20)  # DRAW THE BIGGEST CONTOUR
     utlis.draw_rectangle(image, biggest, 2)
     return image
+
+# Parameter: Raw-Image
+# Return_Value: Estimated vertices of the document contained in the image
+# Observations: Originally it already returned the modified image with the contour, but since I want to enable contours
+#               to be edited after the initial estimation, the function will only return the vertices coordinates.
+def detect_document_vertices(image_source):
+    image_aux = image_source
+
+    # Copy of the original image
+    original_image = image_aux.copy()
+
+    # Firstly, we turn the image into grayScale
+    image_aux = get_image_grayscale(image_aux)
+
+    # Secondly, we run edge detector through the image
+    image_aux = get_image_edge_detector(image_aux)
+
+    # Thirdly, we have to find the contours present in the picture
+    image_aux, contours = get_image_contours(image_aux, original_image)
+
+    # Fourth step is to find the actual biggest contour and draw it on the image
+    biggest = get_image_biggest_contour(contours)
+
+    # We get the coordinates for the vertices of the shape
+
+    if biggest.size != 0:
+        point1 = biggest[0]
+        point2 = biggest[1]
+        point3 = biggest[2]
+        point4 = biggest[3]
+    else:
+        height, width = image_aux.shape[:2]
+
+        # Set up the 4 points of the image based on the resolution of the picture, with an aspect ratio of 1:1.4
+        point1 = np.array([width / 4, height / 4])
+        point2 = np.array([3 * width / 4, height / 4])
+        point3 = np.array([width / 4, int(3 * height / 4)])
+        point4 = np.array([3 * width / 4, int(3 * height / 4)])
+
+    return point1, point2, point3, point4
+
 
 # Function is currently outdated, still maintaining it in here because I need some code contained inside, but the
 # whole branch of execution will be remade in order to work with the functions above in a loop with some changes
