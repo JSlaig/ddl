@@ -57,17 +57,20 @@ def biggest_contour(contours):
     for i in contours:
         area = cv2.contourArea(i)
 
-        if area > 50000:
-            # print("area: " + str(area))
+        # This if determines the min area the picture must have to be able to work with
+        # the program itself, thing is that it affects the detection of shape somehow
+        # by avoiding areas smaller than the value specified, when the picture is way too
+        # small, the if does not trigger and therefore a later error is triggered
+        # TODO: Find sweet-spot for the area value gate-keeping and manage the error in case the picture is too small
+        if area > 2000:
             peri = cv2.arcLength(i, True)
-            # print("perimeter: " + str(peri))
+
             approx = cv2.approxPolyDP(i, 0.0555 * peri, True)
-            # print("lenapprox: " + str(len(approx)))
+
             if peri > max_peri and len(approx) == 4:
                 biggest = approx
                 max_peri = peri
 
-    # print("chosen one: " + str(max_peri))
     return biggest, max_peri
 
 
