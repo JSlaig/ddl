@@ -256,9 +256,9 @@ def load_image():
         point4[0][1] = point4[0][1] / height_ratio
 
         # TODO: If the shapeCropper does contain a previous image, then it must reset before using it again,
-        #       this wasn't noticed previously because all images tested had the same res so they
-        #       overlapped perfectly, since this has to be done with the next button as well,
-        #       creating a function that removes the Shapecropper must be the solution
+        #   this wasn't noticed previously because all images tested had the same res so they
+        #   overlapped perfectly, since this has to be done with the next button as well,
+        #   creating a function that removes the Shapecropper must be the solution
 
         # Canvas to show the picture and modify the vertices
         shape_cropper = ShapeCropper(root, img_width, img_height, point1, point2, point3, point4, img)
@@ -276,8 +276,8 @@ def get_coordinates(shape_cropper):
     values = shape_cropper.get_tokens()
 
     # TODO: The next button needs to remove the current Shapecropper and call the rest of the methods
-    #       that are used to process the image and warp it, since we already have the shapeCropper as a
-    #       param, should be able to nullify it, but not sure on how to remove it from the actual GUI
+    #   that are used to process the image and warp it, since we already have the shapeCropper as a
+    #   param, should be able to nullify it, but not sure on how to remove it from the actual GUI
 
     print("values: ")
     print(values)
