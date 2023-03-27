@@ -52,7 +52,7 @@ class ShapeCropper(tk.Frame):
         self.p3 = p3
         self.p4 = p4
 
-        self.create_tokens(p1, p2, p3, p4, "green")
+        self.create_tokens(p1, p2, p3, p4, "lightblue")
         self.draw_lines(p1, p2, p3, p4)
 
         # add bindings for clicking, dragging and releasing over
@@ -101,10 +101,10 @@ class ShapeCropper(tk.Frame):
         )
 
     def draw_lines(self, p1, p2, p3, p4):
-        self.canvas.create_line(p1[0][0], p1[0][1], p2[0][0], p2[0][1], fill="green", width=2, tags="line")
-        self.canvas.create_line(p2[0][0], p2[0][1], p3[0][0], p3[0][1], fill="green", width=2, tags="line")
-        self.canvas.create_line(p3[0][0], p3[0][1], p4[0][0], p4[0][1], fill="green", width=2, tags="line")
-        self.canvas.create_line(p4[0][0], p4[0][1], p1[0][0], p1[0][1], fill="green", width=2, tags="line")
+        self.canvas.create_line(p1[0][0], p1[0][1], p2[0][0], p2[0][1], fill="lightblue", width=2, tags="line")
+        self.canvas.create_line(p2[0][0], p2[0][1], p3[0][0], p3[0][1], fill="lightblue", width=2, tags="line")
+        self.canvas.create_line(p3[0][0], p3[0][1], p4[0][0], p4[0][1], fill="lightblue", width=2, tags="line")
+        self.canvas.create_line(p4[0][0], p4[0][1], p1[0][0], p1[0][1], fill="lightblue", width=2, tags="line")
         self.canvas.tag_lower("line")
         self.canvas.tag_lower("image")
 
