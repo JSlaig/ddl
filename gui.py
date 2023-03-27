@@ -15,6 +15,8 @@ import documentPreprocessScanner as dps
 root = Tk()  # Assignation of root window
 root.title('DocClone')  # Assignation of the window title
 # root.iconbitmap('c:/gui/codemy.ico')  # Setting an icon for the application
+frame_top = Frame(root)
+frame_bottom = Frame(root)
 image = None
 lblImage = Label(root)
 
@@ -34,8 +36,8 @@ class ShapeCropper(tk.Frame):
         self.height = height
 
         # create a canvas
-        self.canvas = tk.Canvas(width=self.width, height=self.height, background="black")
-        self.canvas.grid(column=0, row=3, padx=5, pady=5)
+        self.canvas = tk.Canvas(parent, width=self.width, height=self.height, background="black")
+        self.canvas.grid(column=0, row=0, padx=5, pady=5)
 
         # Creation of the image in the canvas
         self.canvas.create_image(0, 0, image=self.image, anchor='nw', tags='image')
@@ -179,18 +181,22 @@ def run_gui() -> object:
 
     root.geometry(str(windowWidth) + "x" + str(windowHeight))
 
-    # Image read button
-    btn_load = Button(root, text="load", width=25, command=load_image)
+    # Frame in which top buttons and menus will appear
+    frame_top.grid(column=0, row=0, padx=5, pady=5, sticky=W+E+N+S)
+    frame_top.config(bg="lightblue")
+    frame_top.config(width=windowWidth - 10, height=50)
+
+    # Buttons
+    btn_load = Button(frame_top, text="load", width=25, command=load_image)
     btn_load.grid(column=0, row=0, padx=5, pady=5)
 
-    # Camera option button
-    btn_camera = Button(root, text="capture", width=25, command=camera)
-    btn_camera.grid(column=2, row=0, padx=5, pady=5)
+    btn_camera = Button(frame_top, text="capture", width=25, command=camera)
+    btn_camera.grid(column=1, row=0, padx=5, pady=5)
 
-    # These two might need to be loaded in a later method once the button is chosen
-
-    # Label where image will appear
-    lblImage.grid(column=0, row=2)
+    # Frame in which images will be displayed and cleared
+    frame_bottom.grid(column=0, row=1, padx=5, pady=5, sticky=W+E+N+S)
+    frame_bottom.config(bg="darkgray")
+    frame_bottom.config(width=windowWidth - 10, height=windowHeight - 50)
 
     root.mainloop()
 
@@ -255,17 +261,14 @@ def load_image():
         point4[0][0] = point4[0][0] / width_ratio
         point4[0][1] = point4[0][1] / height_ratio
 
-        # TODO: If the shapeCropper does contain a previous image, then it must reset before using it again,
-        #   this wasn't noticed previously because all images tested had the same res so they
-        #   overlapped perfectly, since this has to be done with the next button as well,
-        #   creating a function that removes the Shapecropper must be the solution
+        for child in frame_bottom.winfo_children():
+            child.destroy()
 
-        # Canvas to show the picture and modify the vertices
-        shape_cropper = ShapeCropper(root, img_width, img_height, point1, point2, point3, point4, img)
-        shape_cropper.grid(column=0, row=3, padx=5, pady=5)
+        shape_cropper = ShapeCropper(frame_bottom, img_width, img_height, point1, point2, point3, point4, img)
+        shape_cropper.grid(column=0, row=0, padx=5, pady=5)
 
-        btn_next = Button(root, text="next", width=25, command=lambda: get_coordinates(shape_cropper))
-        btn_next.grid(column=0, row=5, padx=5, pady=5)
+        btn_next = Button(frame_bottom, text="next", width=25, command=lambda: get_coordinates(shape_cropper))
+        btn_next.grid(column=0, row=1, padx=5, pady=5)
 
         return point1, point2, point3, point4, img
 
@@ -275,9 +278,12 @@ def get_coordinates(shape_cropper):
     # Get cropped coordinates
     values = shape_cropper.get_tokens()
 
-    # TODO: The next button needs to remove the current Shapecropper and call the rest of the methods
+    # TODO: The next button needs to call the rest of the methods
     #   that are used to process the image and warp it, since we already have the shapeCropper as a
     #   param, should be able to nullify it, but not sure on how to remove it from the actual GUI
+
+    for child in frame_bottom.winfo_children():
+        child.destroy()
 
     print("values: ")
     print(values)
