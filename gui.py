@@ -130,9 +130,12 @@ class ShapeCropper(tk.Frame):
     def drag_start(self, event):
         """Begining drag of an object"""
         # record the item and its location
-        self._drag_data["token"] = self.canvas.find_closest(event.x, event.y)[0]
-        self._drag_data["x"] = event.x
-        self._drag_data["y"] = event.y
+        item = self.canvas.find_closest(event.x, event.y)[0]
+
+        if item != 1:
+            self._drag_data["token"] = item
+            self._drag_data["x"] = event.x
+            self._drag_data["y"] = event.y
 
     def drag_stop(self, event):
         """End drag of an object"""
@@ -182,7 +185,7 @@ def run_gui() -> object:
     root.geometry(str(windowWidth) + "x" + str(windowHeight))
 
     # Frame in which top buttons and menus will appear
-    frame_top.grid(column=0, row=0, padx=5, pady=5, sticky=W+E+N+S)
+    frame_top.grid(column=0, row=0, padx=5, pady=5, sticky=W + E + N + S)
     frame_top.config(bg="lightblue")
     frame_top.config(width=windowWidth - 10, height=50)
 
@@ -194,7 +197,7 @@ def run_gui() -> object:
     btn_camera.grid(column=1, row=0, padx=5, pady=5)
 
     # Frame in which images will be displayed and cleared
-    frame_bottom.grid(column=0, row=1, padx=5, pady=5, sticky=W+E+N+S)
+    frame_bottom.grid(column=0, row=1, padx=5, pady=5, sticky=W + E + N + S)
     frame_bottom.config(bg="darkgray")
     frame_bottom.config(width=windowWidth - 10, height=windowHeight - 50)
 
@@ -210,7 +213,6 @@ def camera():
 # Method will be re-factorized in order to only load the image from the filesystem and all preprocess will be actually
 # moved to document preprocess scanner
 def load_image():
-
     path = filedialog.askopenfilename(filetypes=[("image", ".jpg"),
                                                  ("image", ".jpeg"),
                                                  ("image", ".png")])
@@ -274,7 +276,6 @@ def load_image():
 
 
 def get_coordinates(shape_cropper):
-
     # Get cropped coordinates
     values = shape_cropper.get_tokens()
 
