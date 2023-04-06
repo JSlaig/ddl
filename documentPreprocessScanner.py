@@ -3,12 +3,6 @@ import numpy as np
 
 import utlis
 
-
-# This function needs a lot of tweaks still to be able to take as an input images
-# from the filesystem, as well as adapting the ui to only show the elements which
-# are actually necessary. Planning to add a manual adjustment for the area of the
-# document in case the one autodetect by opencv isn't right.
-
 # Since the function goes through several steps, I will split it into different
 # functions that don't use a loop to start to make it able to use the image we
 # load in the gui from the filesystem
@@ -93,6 +87,20 @@ def detect_document_vertices(image_source):
 
     return point1, point2, point3, point4
 
+
+def img_warp(contour, img, width, height):
+    contour = utlis.reorder(contour)
+
+    pts1 = np.float32(contour)  # PREPARE POINTS FOR WARP
+    pts2 = np.float32([[0, 0], [width, 0], [0, height], [width, height]])  # PREPARE POINTS FOR WARP
+    matrix = cv2.getPerspectiveTransform(pts1, pts2)
+    img_warp_colored = cv2.warpPerspective(img, matrix, (width, height))
+
+    # REMOVE 20 PIXELS FORM EACH SIDE
+    img_warp_colored = img_warp_colored[20:img_warp_colored.shape[0] - 20, 20:img_warp_colored.shape[1] - 20]
+    img_warp_colored = cv2.resize(img_warp_colored, (width, height))
+
+    return img_warp_colored
 
 # Function is currently outdated, still maintaining it in here because I need some code contained inside, but the
 # whole branch of execution will be remade in order to work with the functions above in a loop with some changes

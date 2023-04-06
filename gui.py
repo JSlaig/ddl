@@ -13,7 +13,7 @@ import documentPreprocessScanner as dps
 
 # ///////////////////////////////////// ATTRIBUTES OF GUI /////////////////////////////////////
 root = Tk()  # Assignation of root window
-root.title('DocClone')  # Assignation of the window title
+root.title('DDL')  # Assignation of the window title
 # root.iconbitmap('c:/gui/codemy.ico')  # Setting an icon for the application
 frame_top = Frame(root)
 frame_bottom = Frame(root)
@@ -37,7 +37,7 @@ class ShapeCropper(tk.Frame):
 
         # create a canvas
         self.canvas = tk.Canvas(parent, width=self.width, height=self.height, background="black")
-        self.canvas.grid(column=0, row=0, padx=5, pady=5)
+        self.canvas.grid(column=0, row=0, padx=5, pady=5, sticky=W + E + N + S)
 
         # Creation of the image in the canvas
         self.canvas.create_image(0, 0, image=self.image, anchor='nw', tags='image')
@@ -169,18 +169,11 @@ class ShapeCropper(tk.Frame):
         self._drag_data["y"] = event.y
 
 
+# TODO: Extract fragments of code to separate functions to improve clarity
 # ///////////////////////////////////// METHODS /////////////////////////////////////
 def run_gui() -> object:
     # Setting the window size based on the monitor resolution
-    main_monitor = None
-    for m in get_monitors():
-        if m.is_primary:
-            main_monitor = m
-
-    global windowWidth
-    windowWidth = int(3 * main_monitor.width / 4)
-    global windowHeight
-    windowHeight = int(3 * main_monitor.height / 4)
+    windowWidth, windowHeight = configureGeometry()
 
     root.geometry(str(windowWidth) + "x" + str(windowHeight))
 
@@ -190,29 +183,36 @@ def run_gui() -> object:
     frame_top.config(width=windowWidth - 10, height=50)
 
     # Buttons
-    btn_load = Button(frame_top, text="load", width=25, command=load_image)
-    btn_load.grid(column=0, row=0, padx=5, pady=5)
+    btn_load = Button(frame_top, text="load", width=25, command=stored_route)
+    btn_load.grid(column=0, row=0, padx=5, pady=5, sticky=W + E + N + S)
 
-    btn_camera = Button(frame_top, text="capture", width=25, command=camera)
-    btn_camera.grid(column=1, row=0, padx=5, pady=5)
+    btn_camera = Button(frame_top, text="capture", width=25, command=live_route)
+    btn_camera.grid(column=1, row=0, padx=5, pady=5, sticky=W + E + N + S)
+
+    # TODO: Need to add developer menu that lets me enable the output of image with every step of image processing
 
     # Frame in which images will be displayed and cleared
     frame_bottom.grid(column=0, row=1, padx=5, pady=5, sticky=W + E + N + S)
     frame_bottom.config(bg="darkgray")
     frame_bottom.config(width=windowWidth - 10, height=windowHeight - 50)
 
+    # Manage resize ratio
+    root.grid_rowconfigure(0, weight=1)
+    root.grid_rowconfigure(1, weight=60)
+    root.grid_columnconfigure(0, weight=1)
+
     root.mainloop()
 
 
 # Method for starting preprocess of the image taking as input the webcam (MUST BE REARRANGED AND RE-FACTORIZED ONCE
 # LOAD-IMAGE VERSION IS ON A DECENT STAGE)
-def camera():
+def live_route():
     dps.document_preprocess()
 
 
 # Method will be re-factorized in order to only load the image from the filesystem and all preprocess will be actually
 # moved to document preprocess scanner
-def load_image():
+def stored_route():
     path = filedialog.askopenfilename(filetypes=[("image", ".jpg"),
                                                  ("image", ".jpeg"),
                                                  ("image", ".png")])
@@ -243,13 +243,8 @@ def load_image():
         width_ratio = original_width / img_width
         height_ratio = original_height / img_height
 
-        print(width_ratio)
-        print(height_ratio)
-
         # Get the original vertices
         point1, point2, point3, point4 = dps.detect_document_vertices(image)
-
-        print(point1)
 
         point1[0][0] = point1[0][0] / width_ratio
         point1[0][1] = point1[0][1] / height_ratio
@@ -269,13 +264,11 @@ def load_image():
         shape_cropper = ShapeCropper(frame_bottom, img_width, img_height, point1, point2, point3, point4, img)
         shape_cropper.grid(column=0, row=0, padx=5, pady=5)
 
-        btn_next = Button(frame_bottom, text="next", width=25, command=lambda: get_coordinates(shape_cropper))
+        btn_next = Button(frame_bottom, text="next", width=25, command=lambda: get_coordinates(shape_cropper, original_width, original_height, width_ratio, height_ratio))
         btn_next.grid(column=0, row=1, padx=5, pady=5)
 
-        return point1, point2, point3, point4, img
 
-
-def get_coordinates(shape_cropper):
+def get_coordinates(shape_cropper, original_width, original_height, width_ratio, height_ratio):
     # Get cropped coordinates
     values = shape_cropper.get_tokens()
 
@@ -285,6 +278,28 @@ def get_coordinates(shape_cropper):
 
     for child in frame_bottom.winfo_children():
         child.destroy()
-
-    print("values: ")
     print(values)
+    print(values[2][0])
+    values[0][0][0] = values[0][0][0] * width_ratio
+    values[0][0][1] = values[0][0][1] * height_ratio
+    values[1][0][0] = values[1][0][0] * width_ratio
+    values[1][0][1] = values[1][0][1] * height_ratio
+    values[2][0][0] = values[2][0][0] * width_ratio
+    values[2][0][1] = values[2][0][1] * height_ratio
+    values[3][0][0] = values[3][0][0] * width_ratio
+    values[3][0][1] = values[3][0][1] * height_ratio
+
+    warped_image = dps.img_warp(values, image, original_width, original_height)
+
+    cv2.imshow("warped", warped_image)
+
+def configureGeometry():
+    main_monitor = None
+    for m in get_monitors():
+        if m.is_primary:
+            main_monitor = m
+
+    windowWidth = int(3 * main_monitor.width / 4)
+    windowHeight = int(3 * main_monitor.height / 4)
+
+    return windowWidth, windowHeight

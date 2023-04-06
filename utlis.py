@@ -38,6 +38,9 @@ def stack_images(img_array, scale, labels=[]):
 
 
 def reorder(my_points):
+    print(my_points)
+    my_points = np.array(my_points)
+    print(my_points)
     my_points = my_points.reshape((4, 2))
     my_points_new = np.zeros((4, 1, 2), dtype=np.int32)
     add = my_points.sum(1)
@@ -48,6 +51,7 @@ def reorder(my_points):
     my_points_new[1] = my_points[np.argmin(diff)]
     my_points_new[2] = my_points[np.argmax(diff)]
 
+    print(my_points_new)
     return my_points_new
 
 
