@@ -226,8 +226,15 @@ def stored_route():
         # Adjust color
         img = cv2.cvtColor(img_file, cv2.COLOR_BGR2RGB)
 
-        # Need to have this outputted from the additional function downscale with the po
+        # Get the original vertices
+        point1, point2, point3, point4 = dps.detect_document_vertices(img_file)
+
+        # Change this to work in the function downscale with the height based on the resolution
         img_downscale = imutils.resize(img, height=600)
+
+        # Translate to tkinter
+        img_preview = Image.fromarray(img)
+        img_preview_TK = ImageTk.PhotoImage(image=img_preview)
 
         img_downscale_preview = Image.fromarray(img_downscale)
         img_downscale_preview_TK = ImageTk.PhotoImage(image=img_downscale_preview)
@@ -236,18 +243,12 @@ def stored_route():
         img_downscale_width = img_downscale_preview_TK.width()
         img_downscale_height = img_downscale_preview_TK.height()
 
-        # Calculate the new coordinates for the points since the original image has been resized
-        img_preview = Image.fromarray(img)
-        img_preview_TK = ImageTk.PhotoImage(image=img_preview)
-
         img_width = img_preview_TK.width()
         img_height = img_preview_TK.height()
 
+        # Calculation of ratio between original and downsized picture
         width_ratio = img_width / img_downscale_width
         height_ratio = img_height / img_downscale_height
-
-        # Get the original vertices
-        point1, point2, point3, point4 = dps.detect_document_vertices(img_file)
 
         point1[0][0] = point1[0][0] / width_ratio
         point1[0][1] = point1[0][1] / height_ratio
@@ -264,7 +265,8 @@ def stored_route():
         for child in frame_bottom.winfo_children():
             child.destroy()
 
-        shape_cropper = ShapeCropper(frame_bottom, img_downscale_width, img_downscale_height, point1, point2, point3, point4, img_downscale_preview_TK)
+        shape_cropper = ShapeCropper(frame_bottom, img_downscale_width, img_downscale_height, point1, point2, point3,
+                                     point4, img_downscale_preview_TK)
         shape_cropper.grid(column=0, row=0, padx=5, pady=5)
 
         btn_next = Button(frame_bottom, text="next", width=25,
@@ -308,3 +310,11 @@ def configure_geometry():
     windowHeight = int(3 * main_monitor.height / 4)
 
     return windowWidth, windowHeight
+
+
+def downscale(img, img_height, points):
+    img_downscale = imutils.resize(img, height=img_height)
+
+    # Need to scale the points now
+
+    return img_downscale, points
