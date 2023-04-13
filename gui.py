@@ -173,7 +173,7 @@ class ShapeCropper(tk.Frame):
 # ///////////////////////////////////// METHODS /////////////////////////////////////
 def run_gui() -> object:
     # Setting the window size based on the monitor resolution
-    windowWidth, windowHeight = configureGeometry()
+    windowWidth, windowHeight = configure_geometry()
 
     root.geometry(str(windowWidth) + "x" + str(windowHeight))
 
@@ -223,9 +223,12 @@ def stored_route():
         # Read image on opencv
         image = cv2.imread(path)
 
-        # Visualization of image in gui
-        show_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # Need to change the color scheme for proper visuals
+        # Adjust color
+        show_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+        # Need to have this outputted from the additional function downscale with the po
         show_image_small = imutils.resize(show_image, height=600)
+
         im = Image.fromarray(show_image_small)
         img = ImageTk.PhotoImage(image=im)
 
@@ -264,7 +267,9 @@ def stored_route():
         shape_cropper = ShapeCropper(frame_bottom, img_width, img_height, point1, point2, point3, point4, img)
         shape_cropper.grid(column=0, row=0, padx=5, pady=5)
 
-        btn_next = Button(frame_bottom, text="next", width=25, command=lambda: get_coordinates(shape_cropper, original_width, original_height, width_ratio, height_ratio))
+        btn_next = Button(frame_bottom, text="next", width=25,
+                          command=lambda: get_coordinates(shape_cropper, original_width, original_height, width_ratio,
+                                                          height_ratio))
         btn_next.grid(column=0, row=1, padx=5, pady=5)
 
 
@@ -293,7 +298,8 @@ def get_coordinates(shape_cropper, original_width, original_height, width_ratio,
 
     cv2.imshow("warped", warped_image)
 
-def configureGeometry():
+
+def configure_geometry():
     main_monitor = None
     for m in get_monitors():
         if m.is_primary:
