@@ -17,7 +17,7 @@ root.title('DDL')  # Assignation of the window title
 # root.iconbitmap('c:/gui/codemy.ico')  # Setting an icon for the application
 frame_top = Frame(root)
 frame_bottom = Frame(root)
-image = None
+img_file = None
 lblImage = Label(root)
 
 
@@ -218,36 +218,36 @@ def stored_route():
                                                  ("image", ".png")])
 
     if len(path) > 0:
-        global image
+        global img_file
 
         # Read image on opencv
-        image = cv2.imread(path)
+        img_file = cv2.imread(path)
 
         # Adjust color
-        show_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        img = cv2.cvtColor(img_file, cv2.COLOR_BGR2RGB)
 
         # Need to have this outputted from the additional function downscale with the po
-        show_image_small = imutils.resize(show_image, height=600)
+        img_downscale = imutils.resize(img, height=600)
 
-        im = Image.fromarray(show_image_small)
-        img = ImageTk.PhotoImage(image=im)
+        img_downscale_preview = Image.fromarray(img_downscale)
+        img_downscale_preview_TK = ImageTk.PhotoImage(image=img_downscale_preview)
 
         # Resize canvas to fit exact same size as the picture
-        img_width = img.width()
-        img_height = img.height()
+        img_downscale_width = img_downscale_preview_TK.width()
+        img_downscale_height = img_downscale_preview_TK.height()
 
         # Calculate the new coordinates for the points since the original image has been resized
-        original_im = Image.fromarray(show_image)
-        original_image = ImageTk.PhotoImage(image=original_im)
+        img_preview = Image.fromarray(img)
+        img_preview_TK = ImageTk.PhotoImage(image=img_preview)
 
-        original_width = original_image.width()
-        original_height = original_image.height()
+        img_width = img_preview_TK.width()
+        img_height = img_preview_TK.height()
 
-        width_ratio = original_width / img_width
-        height_ratio = original_height / img_height
+        width_ratio = img_width / img_downscale_width
+        height_ratio = img_height / img_downscale_height
 
         # Get the original vertices
-        point1, point2, point3, point4 = dps.detect_document_vertices(image)
+        point1, point2, point3, point4 = dps.detect_document_vertices(img_file)
 
         point1[0][0] = point1[0][0] / width_ratio
         point1[0][1] = point1[0][1] / height_ratio
@@ -264,11 +264,11 @@ def stored_route():
         for child in frame_bottom.winfo_children():
             child.destroy()
 
-        shape_cropper = ShapeCropper(frame_bottom, img_width, img_height, point1, point2, point3, point4, img)
+        shape_cropper = ShapeCropper(frame_bottom, img_downscale_width, img_downscale_height, point1, point2, point3, point4, img_downscale_preview_TK)
         shape_cropper.grid(column=0, row=0, padx=5, pady=5)
 
         btn_next = Button(frame_bottom, text="next", width=25,
-                          command=lambda: get_coordinates(shape_cropper, original_width, original_height, width_ratio,
+                          command=lambda: get_coordinates(shape_cropper, img_width, img_height, width_ratio,
                                                           height_ratio))
         btn_next.grid(column=0, row=1, padx=5, pady=5)
 
@@ -283,8 +283,7 @@ def get_coordinates(shape_cropper, original_width, original_height, width_ratio,
 
     for child in frame_bottom.winfo_children():
         child.destroy()
-    print(values)
-    print(values[2][0])
+
     values[0][0][0] = values[0][0][0] * width_ratio
     values[0][0][1] = values[0][0][1] * height_ratio
     values[1][0][0] = values[1][0][0] * width_ratio
@@ -294,7 +293,7 @@ def get_coordinates(shape_cropper, original_width, original_height, width_ratio,
     values[3][0][0] = values[3][0][0] * width_ratio
     values[3][0][1] = values[3][0][1] * height_ratio
 
-    warped_image = dps.img_warp(values, image, original_width, original_height)
+    warped_image = dps.img_warp(values, img_file, original_width, original_height)
 
     cv2.imshow("warped", warped_image)
 
