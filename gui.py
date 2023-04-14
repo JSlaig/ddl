@@ -25,7 +25,7 @@ lblImage = Label(root)
 class ShapeCropper(tk.Frame):
     """Illustrate how to drag items on a Tkinter canvas"""
 
-    def __init__(self, parent, width, height, p1, p2, p3, p4, img):
+    def __init__(self, parent, width, height, points, img):
         tk.Frame.__init__(self, parent)
 
         # Image we are setting as a background
@@ -47,13 +47,15 @@ class ShapeCropper(tk.Frame):
         self._drag_data = {"x": 0, "y": 0, "item": None}
 
         # Creation of the original points
-        self.p1 = p1
-        self.p2 = p2
-        self.p3 = p3
-        self.p4 = p4
 
-        self.create_tokens(p1, p2, p3, p4, "lightblue")
-        self.draw_lines(p1, p2, p3, p4)
+        # TODO: Change the way these points work once they arent double listed
+        self.p1 = points[0][0]
+        self.p2 = points[1][0]
+        self.p3 = points[2][0]
+        self.p4 = points[3][0]
+
+        self.create_tokens(self.p1, self.p2, self.p3, self.p4, "lightblue")
+        self.draw_lines(self.p1, self.p2, self.p3, self.p4)
 
         # add bindings for clicking, dragging and releasing over
         # any object with the "token" tag
@@ -64,47 +66,47 @@ class ShapeCropper(tk.Frame):
     def create_tokens(self, p1, p2, p3, p4, color):
         """Create a token at the given coordinate in the given color"""
         self.canvas.create_oval(
-            p1[0][0] - 10,
-            p1[0][1] - 10,
-            p1[0][0] + 10,
-            p1[0][1] + 10,
+            p1[0] - 10,
+            p1[1] - 10,
+            p1[0] + 10,
+            p1[1] + 10,
             outline=color,
             fill=color,
             tags=("token",),
         )
         self.canvas.create_oval(
-            p2[0][0] - 10,
-            p2[0][1] - 10,
-            p2[0][0] + 10,
-            p2[0][1] + 10,
+            p2[0] - 10,
+            p2[1] - 10,
+            p2[0] + 10,
+            p2[1] + 10,
             outline=color,
             fill=color,
             tags=("token",),
         )
         self.canvas.create_oval(
-            p3[0][0] - 10,
-            p3[0][1] - 10,
-            p3[0][0] + 10,
-            p3[0][1] + 10,
+            p3[0] - 10,
+            p3[1] - 10,
+            p3[0] + 10,
+            p3[1] + 10,
             outline=color,
             fill=color,
             tags=("token",),
         )
         self.canvas.create_oval(
-            p4[0][0] - 10,
-            p4[0][1] - 10,
-            p4[0][0] + 10,
-            p4[0][1] + 10,
+            p4[0] - 10,
+            p4[1] - 10,
+            p4[0] + 10,
+            p4[1] + 10,
             outline=color,
             fill=color,
             tags=("token",),
         )
 
     def draw_lines(self, p1, p2, p3, p4):
-        self.canvas.create_line(p1[0][0], p1[0][1], p2[0][0], p2[0][1], fill="lightblue", width=2, tags="line")
-        self.canvas.create_line(p2[0][0], p2[0][1], p3[0][0], p3[0][1], fill="lightblue", width=2, tags="line")
-        self.canvas.create_line(p3[0][0], p3[0][1], p4[0][0], p4[0][1], fill="lightblue", width=2, tags="line")
-        self.canvas.create_line(p4[0][0], p4[0][1], p1[0][0], p1[0][1], fill="lightblue", width=2, tags="line")
+        self.canvas.create_line(p1[0], p1[1], p2[0], p2[1], fill="lightblue", width=2, tags="line")
+        self.canvas.create_line(p2[0], p2[1], p3[0], p3[1], fill="lightblue", width=2, tags="line")
+        self.canvas.create_line(p3[0], p3[1], p4[0], p4[1], fill="lightblue", width=2, tags="line")
+        self.canvas.create_line(p4[0], p4[1], p1[0], p1[1], fill="lightblue", width=2, tags="line")
         self.canvas.tag_lower("line")
         self.canvas.tag_lower("image")
 
@@ -120,10 +122,10 @@ class ShapeCropper(tk.Frame):
         t3 = self.canvas.coords(tokens[2])
         t4 = self.canvas.coords(tokens[3])
 
-        p1 = [[int((t1[0] + t1[2]) / 2), int((t1[1] + t1[3]) / 2)]]
-        p2 = [[int((t2[0] + t2[2]) / 2), int((t2[1] + t2[3]) / 2)]]
-        p3 = [[int((t3[0] + t3[2]) / 2), int((t3[1] + t3[3]) / 2)]]
-        p4 = [[int((t4[0] + t4[2]) / 2), int((t4[1] + t4[3]) / 2)]]
+        p1 = [int((t1[0] + t1[2]) / 2), int((t1[1] + t1[3]) / 2)]
+        p2 = [int((t2[0] + t2[2]) / 2), int((t2[1] + t2[3]) / 2)]
+        p3 = [int((t3[0] + t3[2]) / 2), int((t3[1] + t3[3]) / 2)]
+        p4 = [int((t4[0] + t4[2]) / 2), int((t4[1] + t4[3]) / 2)]
 
         return p1, p2, p3, p4
 
@@ -169,7 +171,6 @@ class ShapeCropper(tk.Frame):
         self._drag_data["y"] = event.y
 
 
-# TODO: Extract fragments of code to separate functions to improve clarity
 # ///////////////////////////////////// METHODS /////////////////////////////////////
 def run_gui() -> object:
     # Setting the window size based on the monitor resolution
@@ -227,7 +228,8 @@ def stored_route():
         img = cv2.cvtColor(img_file, cv2.COLOR_BGR2RGB)
 
         # Get the original vertices
-        point1, point2, point3, point4 = dps.detect_document_vertices(img_file)
+        # Needs to be changed in order to be outputted as np array
+        points = dps.detect_document_vertices(img_file)
 
         # Change this to work in the function downscale with the height based on the resolution
         img_downscale = imutils.resize(img, height=600)
@@ -250,23 +252,15 @@ def stored_route():
         width_ratio = img_width / img_downscale_width
         height_ratio = img_height / img_downscale_height
 
-        point1[0][0] = point1[0][0] / width_ratio
-        point1[0][1] = point1[0][1] / height_ratio
-
-        point2[0][0] = point2[0][0] / width_ratio
-        point2[0][1] = point2[0][1] / height_ratio
-
-        point3[0][0] = point3[0][0] / width_ratio
-        point3[0][1] = point3[0][1] / height_ratio
-
-        point4[0][0] = point4[0][0] / width_ratio
-        point4[0][1] = point4[0][1] / height_ratio
+        # Calculate the position of the points in the downscaled image
+        points_downscaled = downscale_points(points, width_ratio, height_ratio)
 
         for child in frame_bottom.winfo_children():
             child.destroy()
 
-        shape_cropper = ShapeCropper(frame_bottom, img_downscale_width, img_downscale_height, point1, point2, point3,
-                                     point4, img_downscale_preview_TK)
+
+        # Need to tune ShapeCropper in order to work with points array
+        shape_cropper = ShapeCropper(frame_bottom, img_downscale_width, img_downscale_height, points_downscaled, img_downscale_preview_TK)
         shape_cropper.grid(column=0, row=0, padx=5, pady=5)
 
         btn_next = Button(frame_bottom, text="next", width=25,
@@ -277,7 +271,7 @@ def stored_route():
 
 def get_coordinates(shape_cropper, original_width, original_height, width_ratio, height_ratio):
     # Get cropped coordinates
-    values = shape_cropper.get_tokens()
+    new_downscaled_points = shape_cropper.get_tokens()
 
     # TODO: The next button needs to call the rest of the methods
     #   that are used to process the image and warp it, since we already have the shapeCropper as a
@@ -286,16 +280,9 @@ def get_coordinates(shape_cropper, original_width, original_height, width_ratio,
     for child in frame_bottom.winfo_children():
         child.destroy()
 
-    values[0][0][0] = values[0][0][0] * width_ratio
-    values[0][0][1] = values[0][0][1] * height_ratio
-    values[1][0][0] = values[1][0][0] * width_ratio
-    values[1][0][1] = values[1][0][1] * height_ratio
-    values[2][0][0] = values[2][0][0] * width_ratio
-    values[2][0][1] = values[2][0][1] * height_ratio
-    values[3][0][0] = values[3][0][0] * width_ratio
-    values[3][0][1] = values[3][0][1] * height_ratio
+    new_points = upscale_points(new_downscaled_points, width_ratio, height_ratio)
 
-    warped_image = dps.img_warp(values, img_file, original_width, original_height)
+    warped_image = dps.img_warp(new_points, img_file, original_width, original_height)
 
     cv2.imshow("warped", warped_image)
 
@@ -312,9 +299,37 @@ def configure_geometry():
     return windowWidth, windowHeight
 
 
-def downscale(img, img_height, points):
-    img_downscale = imutils.resize(img, height=img_height)
+def downscale_points(points, width_ratio, height_ratio):
 
-    # Need to scale the points now
+    # TODO: Once the structure of the array is no longer double-bracketed
+    #   change the way they work from points[2][0][1] to points[2][1]
 
-    return img_downscale, points
+    points[0][0][0] = points[0][0][0] / width_ratio
+    points[0][0][1] = points[0][0][1] / height_ratio
+
+    points[1][0][0] = points[1][0][0] / width_ratio
+    points[1][0][1] = points[1][0][1] / height_ratio
+
+    points[2][0][0] = points[2][0][0] / width_ratio
+    points[2][0][1] = points[2][0][1] / height_ratio
+
+    points[3][0][0] = points[3][0][0] / width_ratio
+    points[3][0][1] = points[3][0][1] / height_ratio
+
+    return points
+
+def upscale_points(points, width_ratio, height_ratio):
+
+    points[0][0] = points[0][0] * width_ratio
+    points[0][1] = points[0][1] * height_ratio
+
+    points[1][0] = points[1][0] * width_ratio
+    points[1][1] = points[1][1] * height_ratio
+
+    points[2][0] = points[2][0] * width_ratio
+    points[2][1] = points[2][1] * height_ratio
+
+    points[3][0] = points[3][0] * width_ratio
+    points[3][1] = points[3][1] * height_ratio
+
+    return points

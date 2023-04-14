@@ -3,6 +3,7 @@ import numpy as np
 
 import utlis
 
+
 # Since the function goes through several steps, I will split it into different
 # functions that don't use a loop to start to make it able to use the image we
 # load in the gui from the filesystem
@@ -34,11 +35,13 @@ def get_image_contours(image, original):
     contours, hierarchy = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # FIND ALL CONTOURS
     return cv2.drawContours(original, contours, -1, (0, 255, 0), 10), contours  # DRAW ALL DETECTED CONTOURS
 
+
 def get_image_biggest_contour(contours):
     # FIND THE BIGGEST CONTOUR
     biggest, max_area = utlis.biggest_contour(contours)  # FIND THE BIGGEST CONTOUR
 
     return biggest
+
 
 def draw_image_contour(point1, point2, point3, point4, image):
     biggest = np.array([[point1], [point2], [point3], [point4]])
@@ -47,10 +50,7 @@ def draw_image_contour(point1, point2, point3, point4, image):
     utlis.draw_rectangle(image, biggest, 2)
     return image
 
-# Parameter: Raw-Image
-# Return_Value: Estimated vertices of the document contained in the image
-# Observations: Originally it already returned the modified image with the contour, but since I want to enable contours
-#               to be edited after the initial estimation, the function will only return the vertices coordinates.
+
 def detect_document_vertices(image_source):
     image_aux = image_source
 
@@ -69,23 +69,15 @@ def detect_document_vertices(image_source):
     # Fourth step is to find the actual biggest contour and draw it on the image
     biggest = get_image_biggest_contour(contours)
 
-    # We get the coordinates for the vertices of the shape
-
-    if biggest.size != 0:
-        point1 = biggest[0]
-        point2 = biggest[1]
-        point3 = biggest[2]
-        point4 = biggest[3]
-    else:
+    # In case no contour is detected, we establish a default one
+    if biggest.size == 0:
         height, width = image_aux.shape[:2]
 
         # Set up the 4 points of the image based on the resolution of the picture, with an aspect ratio of 1:1.4
-        point1 = np.array([width / 4, height / 4])
-        point2 = np.array([3 * width / 4, height / 4])
-        point3 = np.array([width / 4, int(3 * height / 4)])
-        point4 = np.array([3 * width / 4, int(3 * height / 4)])
+        biggest = np.array([[width / 4, height / 4], [3 * width / 4, height / 4], [width / 4, int(3 * height / 4)],
+                            [3 * width / 4, int(3 * height / 4)]])
 
-    return point1, point2, point3, point4
+    return biggest
 
 
 def img_warp(contour, img, width, height):
@@ -101,6 +93,7 @@ def img_warp(contour, img, width, height):
     img_warp_colored = cv2.resize(img_warp_colored, (width, height))
 
     return img_warp_colored
+
 
 # Function is currently outdated, still maintaining it in here because I need some code contained inside, but the
 # whole branch of execution will be remade in order to work with the functions above in a loop with some changes
@@ -171,11 +164,11 @@ def document_preprocess():
 
             # Image Array for Display
             image_array = ([img, img_gray, img_threshold, img_contours],
-                          [img_big_contour, img_warp_colored, img_warp_gray, img_adaptive_thresholds])
+                           [img_big_contour, img_warp_colored, img_warp_gray, img_adaptive_thresholds])
 
         else:
             image_array = ([img, img_gray, img_threshold, img_contours],
-                          [img_blank, img_blank, img_blank, img_blank])
+                           [img_blank, img_blank, img_blank, img_blank])
 
         # LABELS FOR DISPLAY
         lables = [["Original", "Gray", "Threshold", "Contours"],
@@ -188,7 +181,8 @@ def document_preprocess():
         # SAVE IMAGE WHEN 's' key is pressed
         if cv2.waitKey(1) & 0xFF == ord('s'):
             cv2.imwrite("Scanned/myImage" + str(count) + ".jpg", img_warp_colored)
-            cv2.rectangle(stacked_image, ((int(stacked_image.shape[1] / 2) - 230), int(stacked_image.shape[0] / 2) + 50),
+            cv2.rectangle(stacked_image,
+                          ((int(stacked_image.shape[1] / 2) - 230), int(stacked_image.shape[0] / 2) + 50),
                           (1100, 350), (0, 255, 0), cv2.FILLED)
             cv2.putText(stacked_image, "Scan Saved",
                         (int(stacked_image.shape[1] / 2) - 200, int(stacked_image.shape[0] / 2)),
