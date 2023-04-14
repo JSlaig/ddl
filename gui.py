@@ -281,6 +281,7 @@ def get_coordinates(shape_cropper, original_width, original_height, width_ratio,
 
     new_points = upscale_points(new_downscaled_points, width_ratio, height_ratio)
 
+    # This is the warped image over which we will operate
     warped_image = dps.img_warp(new_points, img_file, original_width, original_height)
 
     cv2.imshow("warped", warped_image)
