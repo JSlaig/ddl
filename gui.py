@@ -258,9 +258,8 @@ def stored_route():
         for child in frame_bottom.winfo_children():
             child.destroy()
 
-
-        # Need to tune ShapeCropper in order to work with points array
-        shape_cropper = ShapeCropper(frame_bottom, img_downscale_width, img_downscale_height, points_downscaled, img_downscale_preview_TK)
+        shape_cropper = ShapeCropper(frame_bottom, img_downscale_width, img_downscale_height, points_downscaled,
+                                     img_downscale_preview_TK)
         shape_cropper.grid(column=0, row=0, padx=5, pady=5)
 
         btn_next = Button(frame_bottom, text="next", width=25,
@@ -300,7 +299,6 @@ def configure_geometry():
 
 
 def downscale_points(points, width_ratio, height_ratio):
-
     # TODO: Once the structure of the array is no longer double-bracketed
     #   change the way they work from points[2][0][1] to points[2][1]
 
@@ -318,8 +316,8 @@ def downscale_points(points, width_ratio, height_ratio):
 
     return points
 
-def upscale_points(points, width_ratio, height_ratio):
 
+def upscale_points(points, width_ratio, height_ratio):
     points[0][0] = points[0][0] * width_ratio
     points[0][1] = points[0][1] * height_ratio
 
