@@ -1,10 +1,8 @@
 # DocClone
-TFG Project (WIP)
 
-The idea from this project is trying to take what mobile applications such as Cam Scanner and Office Lens do, one step forward. 
-By using computer vision and OCR the aim is to recognize all the patterns visible in a picture of a document and trying to 
-recreate the whole document from scratch. 
+This is a Work In Progress (WIP) project aimed at taking document scanning to the next level. The goal is to leverage computer vision and OCR to recognize all visible patterns in a document image and recreate the whole document from scratch. 
 
-Some of the aspects of the proyect are yet to define, such as the libraries or type of AI needed to be able to recognize more 
-complex patterns or images. What is already planned is the use of Opencv in python to do all the computer vision stuff and 
-Tesseract for the OCR text recognition.
+There are still some aspects of the project that need to be defined, such as the specific libraries and AI models needed to recognize more complex patterns and images. However, the plan is to use OpenCV in Python for all computer vision tasks and Tesseract for OCR text recognition.
+
+A possible dataset that can be used for training the models is available at https://disk.yandex.kz/d/3p5nGPF_HFZwgw.
+
