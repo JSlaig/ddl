@@ -57,6 +57,15 @@ class ShapeCropper(tk.Frame):
         self.create_tokens(self.p1, self.p2, self.p3, self.p4, "lightblue")
         self.draw_lines(self.p1, self.p2, self.p3, self.p4)
 
+        self.z_img = None
+        self.z_cycle = 0
+        self.z_img_id = None
+
+        # Event handling for the magnifying glass
+        root.bind("<ButtonPress-1>", self.zoomer)
+        root.bind("<ButtonRelease-1>", self.unzoomer)
+        self.canvas.bind("<Motion>", self.crop)
+
         # add bindings for clicking, dragging and releasing over
         # any object with the "token" tag
         self.canvas.tag_bind("token", "<ButtonPress-1>", self.drag_start)
@@ -146,8 +155,6 @@ class ShapeCropper(tk.Frame):
         self._drag_data["x"] = 0
         self._drag_data["y"] = 0
 
-    # TODO: Add a magnifying glass effect in the point with a crosshair to be able to almost
-    #   pixel-perfect adjust the image
     def drag(self, event):
         """Handle dragging of an object"""
         # compute how much the mouse has moved
@@ -171,6 +178,32 @@ class ShapeCropper(tk.Frame):
         # record the new position
         self._drag_data["x"] = event.x
         self._drag_data["y"] = event.y
+
+    def zoomer(self, event):
+        if self.z_cycle != 4:
+            self.z_cycle += 1
+        self.crop(event)
+
+    def unzoomer(self, event):
+        if self.z_cycle != 0:
+            self.z_cycle -= 1
+        self.crop(event)
+
+    def crop(self, event):
+        if self.z_img_id:
+            self.canvas.delete(self.z_img_id)
+        if self.z_cycle != 0:
+
+            x, y = event.x, event.y
+
+            if self.z_cycle == 1:
+                img_preview_rev = ImageTk.getImage(self.image)
+                img_rev = np.array(img_preview_rev)
+                tmp = self.img_rev.crop((x - 45, y - 45, x + 45, y + 45))
+
+            size = 200, 200
+            self.z_img = ImageTk.PhotoImage(tmp.resize(size))
+            self.z_img_id = self.canvas.create_image(event.x - 100, event.y - 100, image=self.z_img)
 
 
 # ///////////////////////////////////// METHODS /////////////////////////////////////
