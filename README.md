@@ -8,3 +8,5 @@ recreate the whole document from scratch.
 Some of the aspects of the proyect are yet to define, such as the libraries or type of AI needed to be able to recognize more 
 complex patterns or images. What is already planned is the use of Opencv in python to do all the computer vision stuff and 
 Tesseract for the OCR text recognition.
+
+~Possible dataset: https://disk.yandex.kz/d/3p5nGPF_HFZwgw~
