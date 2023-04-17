@@ -146,6 +146,8 @@ class ShapeCropper(tk.Frame):
         self._drag_data["x"] = 0
         self._drag_data["y"] = 0
 
+    # TODO: Add a magnifying glass effect in the point with a crosshair to be able to almost
+    #   pixel-perfect adjust the image
     def drag(self, event):
         """Handle dragging of an object"""
         # compute how much the mouse has moved
@@ -283,8 +285,16 @@ def get_coordinates(shape_cropper, original_width, original_height, width_ratio,
 
     # This is the warped image over which we will operate
     warped_image = dps.img_warp(new_points, img_file, original_width, original_height)
+    warped_downscaled = imutils.resize(warped_image, height=600)
 
-    cv2.imshow("warped", warped_image)
+    warped_preview = Image.fromarray(warped_downscaled)
+    warped_preview_TK = ImageTk.PhotoImage(image=warped_preview)
+
+    warp_label = Label(frame_bottom, image=warped_preview_TK)
+    warp_label.grid(column=0, row=0, padx=5, pady=5)
+
+    # Everytime That an image load is needed
+    root.mainloop()
 
 
 def configure_geometry():
