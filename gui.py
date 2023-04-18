@@ -197,9 +197,10 @@ class ShapeCropper(tk.Frame):
             x, y = event.x, event.y
 
             if self.z_cycle == 1:
-                img_preview_rev = ImageTk.getImage(self.image)
-                img_rev = np.array(img_preview_rev)
-                tmp = self.img_rev.crop((x - 45, y - 45, x + 45, y + 45))
+                # convert PhotoImage to PIL Image
+                pil_image = ImageTk.getimage(self.image)
+                tmp = pil_image.crop((x - 45, y - 45, x + 45, y + 45))
+
 
             size = 200, 200
             self.z_img = ImageTk.PhotoImage(tmp.resize(size))
