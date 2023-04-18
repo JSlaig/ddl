@@ -64,9 +64,7 @@ class ShapeCropper(tk.Frame):
 
         # TODO:
         #   -take into account position of the cursor to appear to be always in place
-        #   -add crosshair
         #   -dynamic size based on resolution
-        #   -rounded?
         #   -Only work when clicking on the tokens
 
         # Event handling for the magnifying glass
@@ -208,12 +206,20 @@ class ShapeCropper(tk.Frame):
                 pil_image = ImageTk.getimage(self.image)
                 tmp = pil_image.crop((x - 45, y - 45, x + 45, y + 45))
 
+                # Draw circular mask
                 mask = Image.new("L", tmp.size, 0)
                 draw = ImageDraw.Draw(mask)
                 draw.ellipse((0, 0) + tmp.size, fill=255)
 
                 # Apply the mask to the cropped image
                 tmp.putalpha(mask)
+
+                # Paint vudu crosshair
+                draw = ImageDraw.Draw(tmp)
+
+                # Draw a red crosshair in the middle of the image
+                draw.line((tmp.width / 2, 0, tmp.width / 2, tmp.height), fill="red")
+                draw.line((0, tmp.height / 2, tmp.width, tmp.height / 2), fill="red")
 
             size = 100, 100
             self.z_img = ImageTk.PhotoImage(tmp.resize(size))
