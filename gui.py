@@ -7,6 +7,7 @@ import imutils
 import numpy as np
 from PIL import Image
 from PIL import ImageTk
+from PIL import ImageDraw
 from screeninfo import get_monitors
 
 import documentPreprocessScanner as dps
@@ -206,6 +207,13 @@ class ShapeCropper(tk.Frame):
                 # convert PhotoImage to PIL Image
                 pil_image = ImageTk.getimage(self.image)
                 tmp = pil_image.crop((x - 45, y - 45, x + 45, y + 45))
+
+                mask = Image.new("L", tmp.size, 0)
+                draw = ImageDraw.Draw(mask)
+                draw.ellipse((0, 0) + tmp.size, fill=255)
+
+                # Apply the mask to the cropped image
+                tmp.putalpha(mask)
 
             size = 100, 100
             self.z_img = ImageTk.PhotoImage(tmp.resize(size))
