@@ -61,13 +61,18 @@ class ShapeCropper(tk.Frame):
         self.z_cycle = 0
         self.z_img_id = None
 
+        # TODO: When handling this event, position of the magnifying glass must be
+        #   -take into account position of the cursor to appear to be always in place
+        #   -add crosshair
+        #   -dynamic size based on resolution
+        #   -rounded?
+
         # Event handling for the magnifying glass
         root.bind("<ButtonPress-1>", self.zoomer)
         root.bind("<ButtonRelease-1>", self.unzoomer)
         self.canvas.bind("<Motion>", self.crop)
 
-        # add bindings for clicking, dragging and releasing over
-        # any object with the "token" tag
+        # Event handling for the token drag
         self.canvas.tag_bind("token", "<ButtonPress-1>", self.drag_start)
         self.canvas.tag_bind("token", "<ButtonRelease-1>", self.drag_stop)
         self.canvas.tag_bind("token", "<B1-Motion>", self.drag)
