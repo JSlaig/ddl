@@ -64,9 +64,6 @@ class ShapeCropper(tk.Frame):
         self.z_cycle = 0
         self.z_img_id = None
 
-        # TODO:
-        #   -dynamic size based on resolution
-
         # Event handling for the token drag
         self.canvas.tag_bind("token", "<ButtonPress-1>", self.drag_start)
         self.canvas.tag_bind("token", "<ButtonRelease-1>", self.drag_stop)
