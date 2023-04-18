@@ -65,7 +65,6 @@ class ShapeCropper(tk.Frame):
         self.z_img_id = None
 
         # TODO:
-        #   -take into account position of the cursor to appear to be always in place
         #   -dynamic size based on resolution
 
         # Event handling for the token drag
@@ -217,9 +216,7 @@ class ShapeCropper(tk.Frame):
                 # convert PhotoImage to PIL Image
                 pil_image = ImageTk.getimage(self.image)
 
-                # TODO: Dynamic size here
-                tmp = pil_image.crop(
-                    (x - (self.width / 10), y - (self.height / 10), x + (self.width / 10), y + (self.height / 10)))
+                tmp = pil_image.crop((x - (self.width / 10), y - (self.height / 10), x + (self.width / 10), y + (self.height / 10)))
 
                 # Draw circular mask
                 mask = Image.new("L", tmp.size, 0)
@@ -229,7 +226,6 @@ class ShapeCropper(tk.Frame):
                 # Apply the mask to the cropped image
                 tmp.putalpha(mask)
 
-                # TODO: change the crosshair painting
                 # Paint vudu crosshair
                 draw_ch = ImageDraw.Draw(tmp)
 
@@ -244,23 +240,30 @@ class ShapeCropper(tk.Frame):
                 draw_ch.line((tmp.width * (7 / 10), tmp.height / 2, tmp.width * (8 / 10), tmp.height / 2), fill="red")
 
                 # Ring
-                # Define the center point of the ring
                 center_x, center_y = tmp.width / 2, tmp.height / 2
-
-                # Define the radius of the outer circle
-                outer_radius = 20
 
                 # Draw the outer circle
                 draw_ch.ellipse((center_x - tmp.width / 5, center_y - tmp.height / 5,
                                  center_x + tmp.width / 5, center_y + tmp.height / 5),
                                 outline="red", width=1)
 
-                # Draw the inner circle
-
-            # TODO: modify this since it changes size and zoom
             size = int(self.width / 4), int(self.width / 4)
             self.z_img = ImageTk.PhotoImage(tmp.resize(size))
-            self.z_img_id = self.canvas.create_image(event.x - 55, event.y - 55, image=self.z_img)
+
+            if event.x < 25 * (self.width / 100) and event.y < 20 * (self.height / 100):                                                            # Case it gets close upper left corner
+                self.z_img_id = self.canvas.create_image(event.x + 10 * (self.width / 100),
+                                                         event.y + 10 * (self.height / 100),
+                                                         image=self.z_img)                                                                          # Move down right
+            elif event.x < 25 * (self.width / 100):                                                                                                 # Case it gets close on the left
+                self.z_img_id = self.canvas.create_image(event.x + 10 * (self.width / 100),
+                                                         event.y - 10 * (self.height / 100),
+                                                         image=self.z_img)                                                                          # Move only right
+            elif event.y < 22 * (self.height / 100):                                                                                                # Case in gets close up
+                self.z_img_id = self.canvas.create_image(event.x - 10 * (self.width / 100),
+                                                         event.y + 10 * (self.height / 100),
+                                                         image=self.z_img)                                                                          # Move only down
+            else:                                                          # Normal case or disappear
+                self.z_img_id = self.canvas.create_image(event.x - 10 * (self.width/100), event.y - 10 * (self.height/100), image=self.z_img)
 
 
 # ///////////////////////////////////// METHODS /////////////////////////////////////
