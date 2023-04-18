@@ -199,7 +199,7 @@ class ShapeCropper(tk.Frame):
             self.canvas.delete(self.z_img_id)
         if self.z_cycle != 0:
 
-            x, y = event.x, event.y
+            x, y = self._drag_data["x"], self._drag_data["y"]
 
             if self.z_cycle == 1:
                 # convert PhotoImage to PIL Image
