@@ -218,7 +218,8 @@ class ShapeCropper(tk.Frame):
                 pil_image = ImageTk.getimage(self.image)
 
                 # TODO: Dynamic size here
-                tmp = pil_image.crop((x - 45, y - 45, x + 45, y + 45))
+                tmp = pil_image.crop(
+                    (x - (self.width / 10), y - (self.height / 10), x + (self.width / 10), y + (self.height / 10)))
 
                 # Draw circular mask
                 mask = Image.new("L", tmp.size, 0)
@@ -230,13 +231,34 @@ class ShapeCropper(tk.Frame):
 
                 # TODO: change the crosshair painting
                 # Paint vudu crosshair
-                draw = ImageDraw.Draw(tmp)
+                draw_ch = ImageDraw.Draw(tmp)
 
-                draw.line((tmp.width / 2, 0, tmp.width / 2, tmp.height), fill="red")
-                draw.line((0, tmp.height / 2, tmp.width, tmp.height / 2), fill="red")
+                # Center cross
+                draw_ch.line((tmp.width / 2, tmp.height * (6 / 14), tmp.width / 2, tmp.height * (8 / 14)), fill="red")
+                draw_ch.line((tmp.width * (6 / 14), tmp.height / 2, tmp.width * (8 / 14), tmp.height / 2), fill="red")
+
+                # Outer crosses
+                draw_ch.line((tmp.width / 2, tmp.height * (2 / 10), tmp.width / 2, tmp.height * (3 / 10)), fill="red")
+                draw_ch.line((tmp.width * (2 / 10), tmp.height / 2, tmp.width * (3 / 10), tmp.height / 2), fill="red")
+                draw_ch.line((tmp.width / 2, tmp.height * (7 / 10), tmp.width / 2, tmp.height * (8 / 10)), fill="red")
+                draw_ch.line((tmp.width * (7 / 10), tmp.height / 2, tmp.width * (8 / 10), tmp.height / 2), fill="red")
+
+                # Ring
+                # Define the center point of the ring
+                center_x, center_y = tmp.width / 2, tmp.height / 2
+
+                # Define the radius of the outer circle
+                outer_radius = 20
+
+                # Draw the outer circle
+                draw_ch.ellipse((center_x - tmp.width / 5, center_y - tmp.height / 5,
+                                 center_x + tmp.width / 5, center_y + tmp.height / 5),
+                                outline="red", width=1)
+
+                # Draw the inner circle
 
             # TODO: modify this since it changes size and zoom
-            size = 100, 100
+            size = int(self.width / 4), int(self.width / 4)
             self.z_img = ImageTk.PhotoImage(tmp.resize(size))
             self.z_img_id = self.canvas.create_image(event.x - 55, event.y - 55, image=self.z_img)
 
