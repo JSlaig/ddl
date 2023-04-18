@@ -61,11 +61,12 @@ class ShapeCropper(tk.Frame):
         self.z_cycle = 0
         self.z_img_id = None
 
-        # TODO: When handling this event, position of the magnifying glass must be
+        # TODO:
         #   -take into account position of the cursor to appear to be always in place
         #   -add crosshair
         #   -dynamic size based on resolution
         #   -rounded?
+        #   -Only work when clicking on the tokens
 
         # Event handling for the magnifying glass
         root.bind("<ButtonPress-1>", self.zoomer)
@@ -206,10 +207,9 @@ class ShapeCropper(tk.Frame):
                 pil_image = ImageTk.getimage(self.image)
                 tmp = pil_image.crop((x - 45, y - 45, x + 45, y + 45))
 
-
-            size = 200, 200
+            size = 100, 100
             self.z_img = ImageTk.PhotoImage(tmp.resize(size))
-            self.z_img_id = self.canvas.create_image(event.x - 100, event.y - 100, image=self.z_img)
+            self.z_img_id = self.canvas.create_image(event.x - 55, event.y - 55, image=self.z_img)
 
 
 # ///////////////////////////////////// METHODS /////////////////////////////////////
