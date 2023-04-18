@@ -43,9 +43,11 @@ class ShapeCropper(tk.Frame):
         # Creation of the image in the canvas
         self.canvas.create_image(0, 0, image=self.image, anchor='nw', tags='image')
 
-        # This data is used to keep track of an
-        # item being dragged
+        # This data is used to keep track of an item being dragged
         self._drag_data = {"x": 0, "y": 0, "item": None}
+
+        # Flag for checking if mag glass can appear or not
+        self.visible = False
 
         # Creation of the original points
 
@@ -65,17 +67,16 @@ class ShapeCropper(tk.Frame):
         # TODO:
         #   -take into account position of the cursor to appear to be always in place
         #   -dynamic size based on resolution
-        #   -Only work when clicking on the tokens
-
-        # Event handling for the magnifying glass
-        root.bind("<ButtonPress-1>", self.zoomer)
-        root.bind("<ButtonRelease-1>", self.unzoomer)
-        self.canvas.bind("<Motion>", self.crop)
 
         # Event handling for the token drag
         self.canvas.tag_bind("token", "<ButtonPress-1>", self.drag_start)
         self.canvas.tag_bind("token", "<ButtonRelease-1>", self.drag_stop)
         self.canvas.tag_bind("token", "<B1-Motion>", self.drag)
+
+        # Event handling for the magnifying glass
+        root.bind("<ButtonPress-1>", self.zoomer)
+        root.bind("<ButtonRelease-1>", self.unzoomer)
+        self.canvas.bind("<Motion>", self.crop)
 
     def create_tokens(self, p1, p2, p3, p4, color):
         """Create a token at the given coordinate in the given color"""
@@ -148,10 +149,17 @@ class ShapeCropper(tk.Frame):
         # record the item and its location
         item = self.canvas.find_closest(event.x, event.y)[0]
 
+        cords = self.canvas.coords(item)
+        cord_x = (cords[0] + cords[2]) / 2
+        cord_y = (cords[1] + cords[3]) / 2
+
         if item != 1:
             self._drag_data["token"] = item
-            self._drag_data["x"] = event.x
-            self._drag_data["y"] = event.y
+            self._drag_data["x"] = cord_x
+            self._drag_data["y"] = cord_y
+
+            # Flag for magnifying glass visibility
+            self.visible = True
 
     def drag_stop(self, event):
         """End drag of an object"""
@@ -159,6 +167,9 @@ class ShapeCropper(tk.Frame):
         self._drag_data["token"] = None
         self._drag_data["x"] = 0
         self._drag_data["y"] = 0
+
+        # Flag for magnifying glass visibility
+        self.visible = False
 
     def drag(self, event):
         """Handle dragging of an object"""
@@ -185,9 +196,10 @@ class ShapeCropper(tk.Frame):
         self._drag_data["y"] = event.y
 
     def zoomer(self, event):
-        if self.z_cycle != 4:
-            self.z_cycle += 1
-        self.crop(event)
+        if self.visible:
+            if self.z_cycle != 4:
+                self.z_cycle += 1
+            self.crop(event)
 
     def unzoomer(self, event):
         if self.z_cycle != 0:
@@ -204,6 +216,8 @@ class ShapeCropper(tk.Frame):
             if self.z_cycle == 1:
                 # convert PhotoImage to PIL Image
                 pil_image = ImageTk.getimage(self.image)
+
+                # TODO: Dynamic size here
                 tmp = pil_image.crop((x - 45, y - 45, x + 45, y + 45))
 
                 # Draw circular mask
@@ -214,13 +228,14 @@ class ShapeCropper(tk.Frame):
                 # Apply the mask to the cropped image
                 tmp.putalpha(mask)
 
+                # TODO: change the crosshair painting
                 # Paint vudu crosshair
                 draw = ImageDraw.Draw(tmp)
 
-                # Draw a red crosshair in the middle of the image
                 draw.line((tmp.width / 2, 0, tmp.width / 2, tmp.height), fill="red")
                 draw.line((0, tmp.height / 2, tmp.width, tmp.height / 2), fill="red")
 
+            # TODO: modify this since it changes size and zoom
             size = 100, 100
             self.z_img = ImageTk.PhotoImage(tmp.resize(size))
             self.z_img_id = self.canvas.create_image(event.x - 55, event.y - 55, image=self.z_img)
@@ -286,7 +301,7 @@ def stored_route():
         # Needs to be changed in order to be outputted as np array
         points = dps.detect_document_vertices(img_file)
 
-        # Change this to work in the function downscale with the height based on the resolution
+        # TODO: Change this to work in the function downscale with the height based on the resolution
         img_downscale = imutils.resize(img, height=600)
 
         # Translate to tkinter
@@ -313,6 +328,7 @@ def stored_route():
         for child in frame_bottom.winfo_children():
             child.destroy()
 
+        # TODO: Reorganize these elements to be centered and based on window size live
         shape_cropper = ShapeCropper(frame_bottom, img_downscale_width, img_downscale_height, points_downscaled,
                                      img_downscale_preview_TK)
         shape_cropper.grid(column=0, row=0, padx=5, pady=5)
