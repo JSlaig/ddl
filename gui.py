@@ -4,6 +4,7 @@ from tkinter import filedialog
 
 import cv2
 import imutils
+
 import numpy as np
 from PIL import Image
 from PIL import ImageTk
@@ -15,7 +16,8 @@ import documentPreprocessScanner as dps
 # ///////////////////////////////////// ATTRIBUTES OF GUI /////////////////////////////////////
 root = Tk()  # Assignation of root window
 root.title('DDL')  # Assignation of the window title
-# root.iconbitmap('c:/gui/codemy.ico')  # Setting an icon for the application
+root.wm_iconbitmap('Assets/DDL.ico')  # Setting an icon for the application
+
 frame_top = Frame(root)
 frame_bottom = Frame(root)
 img_file = None
@@ -213,7 +215,8 @@ class ShapeCropper(tk.Frame):
                 # convert PhotoImage to PIL Image
                 pil_image = ImageTk.getimage(self.image)
 
-                tmp = pil_image.crop((x - (self.width / 10), y - (self.height / 10), x + (self.width / 10), y + (self.height / 10)))
+                tmp = pil_image.crop(
+                    (x - (self.width / 10), y - (self.height / 10), x + (self.width / 10), y + (self.height / 10)))
 
                 # Draw circular mask
                 mask = Image.new("L", tmp.size, 0)
@@ -247,20 +250,22 @@ class ShapeCropper(tk.Frame):
             size = int(self.width / 4), int(self.width / 4)
             self.z_img = ImageTk.PhotoImage(tmp.resize(size))
 
-            if event.x < 25 * (self.width / 100) and event.y < 20 * (self.height / 100):                                                            # Case it gets close upper left corner
+            if event.x < 25 * (self.width / 100) and event.y < 20 * (
+                    self.height / 100):  # Case it gets close upper left corner
                 self.z_img_id = self.canvas.create_image(event.x + 10 * (self.width / 100),
                                                          event.y + 10 * (self.height / 100),
-                                                         image=self.z_img)                                                                          # Move down right
-            elif event.x < 25 * (self.width / 100):                                                                                                 # Case it gets close on the left
+                                                         image=self.z_img)  # Move down right
+            elif event.x < 25 * (self.width / 100):  # Case it gets close on the left
                 self.z_img_id = self.canvas.create_image(event.x + 10 * (self.width / 100),
                                                          event.y - 10 * (self.height / 100),
-                                                         image=self.z_img)                                                                          # Move only right
-            elif event.y < 22 * (self.height / 100):                                                                                                # Case in gets close up
+                                                         image=self.z_img)  # Move only right
+            elif event.y < 22 * (self.height / 100):  # Case in gets close up
                 self.z_img_id = self.canvas.create_image(event.x - 10 * (self.width / 100),
                                                          event.y + 10 * (self.height / 100),
-                                                         image=self.z_img)                                                                          # Move only down
-            else:                                                          # Normal case or disappear
-                self.z_img_id = self.canvas.create_image(event.x - 10 * (self.width/100), event.y - 10 * (self.height/100), image=self.z_img)
+                                                         image=self.z_img)  # Move only down
+            else:  # Normal case or disappear
+                self.z_img_id = self.canvas.create_image(event.x - 10 * (self.width / 100),
+                                                         event.y - 10 * (self.height / 100), image=self.z_img)
 
 
 # ///////////////////////////////////// METHODS /////////////////////////////////////
@@ -276,7 +281,7 @@ def run_gui() -> object:
     frame_top.config(width=windowWidth - 10, height=50)
 
     # Buttons
-    btn_load = Button(frame_top, text="load", width=25, command=stored_route)
+    btn_load = Button(frame_top, text="load", width=25, command=lambda: stored_route(True))
     btn_load.grid(column=0, row=0, padx=5, pady=5, sticky=W + E + N + S)
 
     btn_camera = Button(frame_top, text="capture", width=25, command=live_route)
@@ -303,9 +308,69 @@ def live_route():
     dps.document_preprocess()
 
 
-# Method will be re-factorized in order to only load the image from the filesystem and all preprocess will be actually
-# moved to document preprocess scanner
-def stored_route():
+def stored_route(path):
+    if path:
+        img = load_image()
+    else:
+        # Here image save from the cam will be taken
+        print('Should have webcammed it')
+
+    # Get the original vertices
+    # Needs to be changed in order to be outputted as np array
+    points = dps.detect_document_vertices(img_file)
+
+    window_height = root.winfo_height()
+
+    image_height = int(85 * window_height / 100)
+    img_downscale = imutils.resize(img, height=image_height)
+
+    # Translate to tkinter
+    img_preview = Image.fromarray(img)
+    img_preview_TK = ImageTk.PhotoImage(image=img_preview)
+
+    img_downscale_preview = Image.fromarray(img_downscale)
+    img_downscale_preview_TK = ImageTk.PhotoImage(image=img_downscale_preview)
+
+    # Resize canvas to fit exact same size as the picture
+    img_downscale_width = img_downscale_preview_TK.width()
+    img_downscale_height = img_downscale_preview_TK.height()
+
+    img_width = img_preview_TK.width()
+    img_height = img_preview_TK.height()
+
+    # Calculation of ratio between original and downsized picture
+    width_ratio = img_width / img_downscale_width
+    height_ratio = img_height / img_downscale_height
+
+    # Calculate the position of the points in the downscaled image
+    points_downscaled = downscale_points(points, width_ratio, height_ratio)
+
+    for child in frame_bottom.winfo_children():
+        child.destroy()
+
+    # TODO: Reorganize these elements to be centered and based on window size live
+    #   -Set elements inside frame
+    shape_cropper = ShapeCropper(frame_bottom, img_downscale_width, img_downscale_height, points_downscaled,
+                                 img_downscale_preview_TK)
+    shape_cropper.grid(column=0, row=0, padx=5, pady=5)
+
+    btn_next = Button(frame_bottom, text="next", width=25,
+                      command=lambda: get_coordinates(shape_cropper, img_width, img_height, width_ratio,
+                                                      height_ratio))
+    btn_next.grid(column=0, row=1, padx=5, pady=5)
+
+def configure_geometry():
+    main_monitor = None
+    for m in get_monitors():
+        if m.is_primary:
+            main_monitor = m
+
+    windowWidth = int(3 * main_monitor.width / 4)
+    windowHeight = int(3 * main_monitor.height / 4)
+
+    return windowWidth, windowHeight
+
+def load_image():
     path = filedialog.askopenfilename(filetypes=[("image", ".jpg"),
                                                  ("image", ".jpeg"),
                                                  ("image", ".png")])
@@ -319,47 +384,40 @@ def stored_route():
         # Adjust color
         img = cv2.cvtColor(img_file, cv2.COLOR_BGR2RGB)
 
-        # Get the original vertices
-        # Needs to be changed in order to be outputted as np array
-        points = dps.detect_document_vertices(img_file)
+    return img
 
-        # TODO: Change this to work in the function downscale with the height based on the resolution
-        img_downscale = imutils.resize(img, height=600)
+def downscale_points(points, width_ratio, height_ratio):
+    # TODO: Once the structure of the array is no longer double-bracketed
+    #   change the way they work from points[2][0][1] to points[2][1]
 
-        # Translate to tkinter
-        img_preview = Image.fromarray(img)
-        img_preview_TK = ImageTk.PhotoImage(image=img_preview)
+    points[0][0][0] = points[0][0][0] / width_ratio
+    points[0][0][1] = points[0][0][1] / height_ratio
 
-        img_downscale_preview = Image.fromarray(img_downscale)
-        img_downscale_preview_TK = ImageTk.PhotoImage(image=img_downscale_preview)
+    points[1][0][0] = points[1][0][0] / width_ratio
+    points[1][0][1] = points[1][0][1] / height_ratio
 
-        # Resize canvas to fit exact same size as the picture
-        img_downscale_width = img_downscale_preview_TK.width()
-        img_downscale_height = img_downscale_preview_TK.height()
+    points[2][0][0] = points[2][0][0] / width_ratio
+    points[2][0][1] = points[2][0][1] / height_ratio
 
-        img_width = img_preview_TK.width()
-        img_height = img_preview_TK.height()
+    points[3][0][0] = points[3][0][0] / width_ratio
+    points[3][0][1] = points[3][0][1] / height_ratio
 
-        # Calculation of ratio between original and downsized picture
-        width_ratio = img_width / img_downscale_width
-        height_ratio = img_height / img_downscale_height
+    return points
 
-        # Calculate the position of the points in the downscaled image
-        points_downscaled = downscale_points(points, width_ratio, height_ratio)
+def upscale_points(points, width_ratio, height_ratio):
+    points[0][0] = points[0][0] * width_ratio
+    points[0][1] = points[0][1] * height_ratio
 
-        for child in frame_bottom.winfo_children():
-            child.destroy()
+    points[1][0] = points[1][0] * width_ratio
+    points[1][1] = points[1][1] * height_ratio
 
-        # TODO: Reorganize these elements to be centered and based on window size live
-        shape_cropper = ShapeCropper(frame_bottom, img_downscale_width, img_downscale_height, points_downscaled,
-                                     img_downscale_preview_TK)
-        shape_cropper.grid(column=0, row=0, padx=5, pady=5)
+    points[2][0] = points[2][0] * width_ratio
+    points[2][1] = points[2][1] * height_ratio
 
-        btn_next = Button(frame_bottom, text="next", width=25,
-                          command=lambda: get_coordinates(shape_cropper, img_width, img_height, width_ratio,
-                                                          height_ratio))
-        btn_next.grid(column=0, row=1, padx=5, pady=5)
+    points[3][0] = points[3][0] * width_ratio
+    points[3][1] = points[3][1] * height_ratio
 
+    return points
 
 def get_coordinates(shape_cropper, original_width, original_height, width_ratio, height_ratio):
     # Get cropped coordinates
@@ -386,50 +444,3 @@ def get_coordinates(shape_cropper, original_width, original_height, width_ratio,
 
     # Everytime That an image load is needed
     root.mainloop()
-
-
-def configure_geometry():
-    main_monitor = None
-    for m in get_monitors():
-        if m.is_primary:
-            main_monitor = m
-
-    windowWidth = int(3 * main_monitor.width / 4)
-    windowHeight = int(3 * main_monitor.height / 4)
-
-    return windowWidth, windowHeight
-
-
-def downscale_points(points, width_ratio, height_ratio):
-    # TODO: Once the structure of the array is no longer double-bracketed
-    #   change the way they work from points[2][0][1] to points[2][1]
-
-    points[0][0][0] = points[0][0][0] / width_ratio
-    points[0][0][1] = points[0][0][1] / height_ratio
-
-    points[1][0][0] = points[1][0][0] / width_ratio
-    points[1][0][1] = points[1][0][1] / height_ratio
-
-    points[2][0][0] = points[2][0][0] / width_ratio
-    points[2][0][1] = points[2][0][1] / height_ratio
-
-    points[3][0][0] = points[3][0][0] / width_ratio
-    points[3][0][1] = points[3][0][1] / height_ratio
-
-    return points
-
-
-def upscale_points(points, width_ratio, height_ratio):
-    points[0][0] = points[0][0] * width_ratio
-    points[0][1] = points[0][1] * height_ratio
-
-    points[1][0] = points[1][0] * width_ratio
-    points[1][1] = points[1][1] * height_ratio
-
-    points[2][0] = points[2][0] * width_ratio
-    points[2][1] = points[2][1] * height_ratio
-
-    points[3][0] = points[3][0] * width_ratio
-    points[3][1] = points[3][1] * height_ratio
-
-    return points
