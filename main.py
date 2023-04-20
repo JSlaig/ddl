@@ -5,16 +5,15 @@ from tkinter import filedialog
 import cv2
 import imutils
 
-import numpy as np
 from PIL import Image
 from PIL import ImageTk
-from PIL import ImageDraw
 from screeninfo import get_monitors
 
 import documentPreprocessScanner as dps
 from ShapeCropper import ShapeCropper
 
 
+# Initial window size based on resolution
 def configure_geometry():
     main_monitor = None
     for m in get_monitors():
@@ -66,18 +65,6 @@ class DDL(tk.Frame):
         root.grid_rowconfigure(1, weight=60)
         root.grid_columnconfigure(0, weight=1)
 
-    def load_image(self):
-        path = filedialog.askopenfilename(filetypes=[("image", ".jpg"),
-                                                     ("image", ".jpeg"),
-                                                     ("image", ".png")])
-
-        if len(path) > 0:
-            # Read image on opencv
-            self.img_file = cv2.imread(path)
-
-            # Adjust color
-            self.img = cv2.cvtColor(self.img_file, cv2.COLOR_BGR2RGB)
-
     def webcam(self):
         # TODO: rewrite most of this
         dps.document_preprocess()
@@ -122,7 +109,8 @@ class DDL(tk.Frame):
 
         # TODO: Reorganize these elements to be centered and based on window size live
         #   -Set elements inside frame
-        shape_cropper = ShapeCropper(root, self.frame_bottom, img_downscale_width, img_downscale_height, points_downscaled,
+        shape_cropper = ShapeCropper(root, self.frame_bottom, img_downscale_width, img_downscale_height,
+                                     points_downscaled,
                                      img_downscale_preview_TK)
         shape_cropper.grid(column=0, row=0, padx=5, pady=5)
 
@@ -130,7 +118,18 @@ class DDL(tk.Frame):
                           command=lambda: self.get_coordinates(shape_cropper, img_width, img_height))
         btn_next.grid(column=0, row=1, padx=5, pady=5)
 
-    # TODO: Make it work with self params
+    def load_image(self):
+        path = filedialog.askopenfilename(filetypes=[("image", ".jpg"),
+                                                     ("image", ".jpeg"),
+                                                     ("image", ".png")])
+
+        if len(path) > 0:
+            # Read image on opencv
+            self.img_file = cv2.imread(path)
+
+            # Adjust color
+            self.img = cv2.cvtColor(self.img_file, cv2.COLOR_BGR2RGB)
+
     def downscale_points(self, points):
         # TODO: Once the structure of the array is no longer double-bracketed
         #   change the way they work from points[2][0][1] to points[2][1]
