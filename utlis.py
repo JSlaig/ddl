@@ -36,19 +36,6 @@ def stack_images(img_array, scale, labels=[]):
     return ver
 
 
-def reorder(my_points):
-    my_points = np.array(my_points)
-    my_points = my_points.reshape((4, 2))
-    my_points_new = np.zeros((4, 1, 2), dtype=np.int32)
-    add = my_points.sum(1)
-
-    my_points_new[0] = my_points[np.argmin(add)]
-    my_points_new[3] = my_points[np.argmax(add)]
-    diff = np.diff(my_points, axis=1)
-    my_points_new[1] = my_points[np.argmin(diff)]
-    my_points_new[2] = my_points[np.argmax(diff)]
-
-    return my_points_new
 
 
 def biggest_contour(contours):
@@ -82,6 +69,19 @@ def draw_rectangle(img, biggest, thickness):
 
     return img
 
+def reorder(my_points):
+    my_points = np.array(my_points)
+    my_points = my_points.reshape((4, 2))
+    my_points_new = np.zeros((4, 1, 2), dtype=np.int32)
+    add = my_points.sum(1)
+
+    my_points_new[0] = my_points[np.argmin(add)]
+    my_points_new[3] = my_points[np.argmax(add)]
+    diff = np.diff(my_points, axis=1)
+    my_points_new[1] = my_points[np.argmin(diff)]
+    my_points_new[2] = my_points[np.argmax(diff)]
+
+    return my_points_new
 
 def nothing(x):
     pass
