@@ -29,6 +29,7 @@ def configure_geometry():
 class DDL(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
+        self.points = None
         self.img_file = None
         self.height_ratio = None
         self.width_ratio = None
@@ -78,7 +79,7 @@ class DDL(tk.Frame):
 
         # Get the original vertices
         # Needs to be changed in order to be outputted as np array
-        points = dps.detect_document_vertices(self.img_file)
+        self.points = dps.detect_document_vertices(self.img_file)
 
         image_height = int(85 * root.winfo_height() / 100)
         self.img_downscaled = imutils.resize(self.img, height=image_height)
@@ -102,21 +103,21 @@ class DDL(tk.Frame):
         self.height_ratio = img_height / img_downscale_height
 
         # Calculate the position of the points in the downscaled image
-        points_downscaled = self.downscale_points(points)
+        points_downscaled = self.downscale_points(self.points)
 
+        # TODO: Might want to alter this to be class oriented as well
         for child in self.frame_bottom.winfo_children():
             child.destroy()
 
-        # TODO: Reorganize these elements to be centered and based on window size live
-        #   -Set elements inside frame
+        pad_x = self.frame_bottom.winfo_width() / 3
         shape_cropper = ShapeCropper(root, self.frame_bottom, img_downscale_width, img_downscale_height,
                                      points_downscaled,
                                      img_downscale_preview_TK)
-        shape_cropper.grid(column=0, row=0, padx=5, pady=5)
+        shape_cropper.grid(column=0, row=0, padx=pad_x, pady=5, sticky="EW")
 
         btn_next = Button(self.frame_bottom, text="next", width=25,
                           command=lambda: self.get_coordinates(shape_cropper, img_width, img_height))
-        btn_next.grid(column=0, row=1, padx=5, pady=5)
+        btn_next.grid(column=0, row=1, padx=pad_x, pady=5, sticky="EW")
 
     def load_image(self):
         path = filedialog.askopenfilename(filetypes=[("image", ".jpg"),
@@ -163,21 +164,19 @@ class DDL(tk.Frame):
 
         return points
 
-    def get_coordinates(self, shape_cropper, original_width, original_height):
+    def get_coordinates(self, shape_cropper, img_width, img_height):
         # Get cropped coordinates
         new_downscaled_points = shape_cropper.get_tokens()
 
-        # TODO: The next button needs to call the rest of the methods
-        #   that are used to process the image and warp it, since we already have the shapeCropper as a
-        #   param, should be able to nullify it, but not sure on how to remove it from the actual GUI
+        self.points = self.upscale_points(new_downscaled_points)
 
+        # TODO: change this to be a new class that displays the warped image
+        # Remove elements then put new in
         for child in self.frame_bottom.winfo_children():
             child.destroy()
 
-        new_points = self.upscale_points(new_downscaled_points)
-
         # This is the warped image over which we will operate
-        warped_image = dps.img_warp(new_points, self.img_file, original_width, original_height)
+        warped_image = dps.img_warp(self.points, self.img_file, img_width, img_height)
 
         image_height = int(85 * root.winfo_height() / 100)
         warped_downscaled = imutils.resize(warped_image, height=image_height)
@@ -186,7 +185,8 @@ class DDL(tk.Frame):
         warped_preview_TK = ImageTk.PhotoImage(image=warped_preview)
 
         warp_label = Label(self.frame_bottom, image=warped_preview_TK)
-        warp_label.grid(column=0, row=0, padx=5, pady=5)
+        pad_x = self.frame_bottom.winfo_width() / 3
+        warp_label.grid(column=0, row=0, padx=pad_x, pady=5)
 
         # Everytime That an image load is needed
         root.mainloop()

@@ -20,8 +20,9 @@ class ShapeCropper(tk.Frame):
         self.height = height
 
         # create a canvas
+        pad_x = parent.winfo_width()/3
         self.canvas = tk.Canvas(parent, width=self.width, height=self.height, background="black")
-        self.canvas.grid(column=0, row=0, padx=5, pady=5, sticky=W + E + N + S)
+        self.canvas.grid(column=0, row=0, padx=pad_x, pady=5, sticky="EW")
 
         # Creation of the image in the canvas
         self.canvas.create_image(0, 0, image=self.image, anchor='nw', tags='image')
