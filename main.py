@@ -13,7 +13,7 @@ import imutils
 from PIL import Image, ImageTk
 from screeninfo import get_monitors
 
-import DocumentPreprocessScanner as dps
+import PreprocessCV as dps
 from ShapeCropper import ShapeCropper
 
 
@@ -122,8 +122,7 @@ class DDL(tk.Frame):
         points_downscaled = self.downscale_points(self.points)
 
         # TODO: Might want to alter this to be class oriented as well
-        for child in self.frame_bottom.winfo_children():
-            child.destroy()
+        self.clear_frame()
 
         pad_x = self.frame_bottom.winfo_width() / 3
         shape_cropper = ShapeCropper(root, self.frame_bottom, img_downscale_width, img_downscale_height,
@@ -188,8 +187,7 @@ class DDL(tk.Frame):
 
         # TODO: change this to be a new class that displays the warped image
         # Remove elements then put new in
-        for child in self.frame_bottom.winfo_children():
-            child.destroy()
+        self.clear_frame()
 
         # This is the warped image over which we will operate
         warped_image = dps.img_warp(self.points, self.img_file, img_width, img_height)
@@ -240,13 +238,16 @@ class DDL(tk.Frame):
         if self.streaming:
             self.webcam_display.after(10, self.stream)
         else:
-            for child in self.frame_bottom.winfo_children():
-                child.destroy()
+            self.clear_frame()
 
             self.img_file = frame_corrected
             self.img = frame_corrected
 
             self.display_image(False)
+
+    def clear_frame(self):
+        for child in self.frame_bottom.winfo_children():
+            child.destroy()
 
 
 root = tk.Tk()
