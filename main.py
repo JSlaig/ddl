@@ -221,8 +221,11 @@ class DDL(tk.Frame):
         ret, frame = self.video.read()
 
         if ret:
-            # image_height = int(85 * root.winfo_height() / 100)
-            frame_downscaled = imutils.resize(frame, width=640)
+            # TODO:Try to crop it
+            # frame = frame[0:800, 0:800]
+
+            image_height = int(85 * root.winfo_height() / 100)
+            frame_downscaled = imutils.resize(frame, height=image_height)
 
             # Both copies of the frame are processed in order to get the actual high-res one
             frame_corrected = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
