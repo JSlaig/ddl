@@ -50,7 +50,7 @@ def draw_image_contour(point1, point2, point3, point4, image):
     utlis.draw_rectangle(image, biggest, 2)
     return image
 
-
+# TODO: Something gets fucked up in here always in terms of detection
 def detect_document_vertices(image_source):
     image_aux = image_source
 
@@ -74,9 +74,8 @@ def detect_document_vertices(image_source):
         height, width = image_aux.shape[:2]
 
         # Set up the 4 points of the image based on the resolution of the picture, with an aspect ratio of 1:1.4
-        biggest = np.array([[width / 4, height / 4], [3 * width / 4, height / 4], [width / 4, int(3 * height / 4)],
-                            [3 * width / 4, int(3 * height / 4)]])
-
+        biggest = np.array([[int(width / 4), int(height / 4)], [int(3 * width / 4), int(height / 4)], [int(width / 4), int(3 * height / 4)],
+                            [int(3 * width / 4), int(3 * height / 4)]])
     return biggest
 
 

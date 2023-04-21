@@ -1,3 +1,4 @@
+import math
 import tkinter as tk
 
 import time
@@ -75,10 +76,18 @@ class DDL(tk.Frame):
         root.grid_columnconfigure(0, weight=1)
 
     def display_webcam(self):
+
+        self.clear_frame()
+
         self.video = cv2.VideoCapture(0)
 
+        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 720)
+        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 1280)
+
+        size = int(60 * root.winfo_width() / 100)
+
         # Set elements for the webcam
-        pad_x = int((self.frame_bottom.winfo_width() - self.video.get(cv2.CAP_PROP_FRAME_WIDTH)) / 2)
+        pad_x = int((self.frame_bottom.winfo_width() - size) / 2)
 
         self.webcam_display = Label(self.frame_bottom, bg="black")
         self.webcam_display.grid(column=0, row=0, padx=pad_x, pady=5, sticky="EW")
@@ -102,14 +111,19 @@ class DDL(tk.Frame):
 
         # Translate to tkinter
         img_preview = Image.fromarray(self.img)
-        img_preview_TK = ImageTk.PhotoImage(image=img_preview)
 
         img_downscale_preview = Image.fromarray(self.img_downscaled)
         img_downscale_preview_TK = ImageTk.PhotoImage(image=img_downscale_preview)
 
         # Calculation of ratio between original and downsized picture
+        print(img_preview.width)
+        print(img_downscale_preview.width)
+
         self.width_ratio = img_preview.width / img_downscale_preview.width
         self.height_ratio = img_preview.height / img_downscale_preview.height
+
+        print(self.width_ratio)
+        print(self.height_ratio)
 
         # Calculate the position of the points in the downscaled image
         points_downscaled = self.downscale_points(self.points)
@@ -185,7 +199,15 @@ class DDL(tk.Frame):
         # This is the warped image over which we will operate
         warped_image = dps.img_warp(self.points, self.img_file, img_width, img_height)
 
+        aspect_ratio = 1 / math.sqrt(2)
+
+        a4_height = Image.fromarray(warped_image).height
+        a4_width = int(a4_height * aspect_ratio)
+
+        warped_image = cv2.resize(warped_image, (a4_width, a4_height))
+
         image_height = int(85 * root.winfo_height() / 100)
+
         warped_downscaled = imutils.resize(warped_image, height=image_height)
 
         warped_preview = Image.fromarray(warped_downscaled)
@@ -193,6 +215,7 @@ class DDL(tk.Frame):
 
         warp_label = Label(self.frame_bottom, image=warped_preview_TK)
         pad_x = int((self.frame_bottom.winfo_width() - warped_preview.width) / 2)
+
         warp_label.grid(column=0, row=0, padx=pad_x, pady=5)
 
         # Everytime That an image load is needed
