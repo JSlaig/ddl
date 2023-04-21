@@ -1,15 +1,19 @@
 import tkinter as tk
+
+import time
+
 from tkinter import *
 from tkinter import filedialog
+
+import threading
 
 import cv2
 import imutils
 
-from PIL import Image
-from PIL import ImageTk
+from PIL import Image, ImageTk
 from screeninfo import get_monitors
 
-import documentPreprocessScanner as dps
+import DocumentPreprocessScanner as dps
 from ShapeCropper import ShapeCropper
 
 
@@ -29,6 +33,10 @@ def configure_geometry():
 class DDL(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
+        self.stream_thread = None
+        self.streaming = None
+        self.webcam_display = None
+        self.video = None
         self.points = None
         self.img_file = None
         self.height_ratio = None
@@ -51,7 +59,7 @@ class DDL(tk.Frame):
         btn_load = Button(self.frame_top, text="load", width=25, command=lambda: self.display_image(True))
         btn_load.grid(column=0, row=0, padx=5, pady=5, sticky=W + E + N + S)
 
-        btn_camera = Button(self.frame_top, text="capture", width=25, command=self.webcam)
+        btn_camera = Button(self.frame_top, text="capture", width=25, command=self.display_webcam)
         btn_camera.grid(column=1, row=0, padx=5, pady=5, sticky=W + E + N + S)
 
         # TODO: Need to add developer menu that lets me enable the output of image with every step of image processing
@@ -66,16 +74,24 @@ class DDL(tk.Frame):
         root.grid_rowconfigure(1, weight=60)
         root.grid_columnconfigure(0, weight=1)
 
-    def webcam(self):
-        # TODO: rewrite most of this
-        dps.document_preprocess()
+    def display_webcam(self):
+        self.video = None
 
-    def display_image(self, path):
-        if path:
+        # Set elements for the webcam
+        pad_x = self.frame_bottom.winfo_width() / 3
+
+        self.webcam_display = Label(self.frame_bottom, bg="black")
+        self.webcam_display.grid(column=0, row=0, padx=pad_x, pady=5, sticky="EW")
+
+        btn_next = Button(self.frame_bottom, text="next", width=25,
+                          command=lambda: self.stop_stream())
+        btn_next.grid(column=0, row=1, padx=pad_x, pady=5, sticky="EW")
+
+        self.start_stream()
+
+    def display_image(self, load_from_filesystem):
+        if load_from_filesystem:
             self.load_image()
-        else:
-            # Here image save from the cam will be taken
-            print('Should have webcammed it')
 
         # Get the original vertices
         # Needs to be changed in order to be outputted as np array
@@ -190,6 +206,44 @@ class DDL(tk.Frame):
 
         # Everytime That an image load is needed
         root.mainloop()
+
+    def start_stream(self):
+        self.streaming = True
+        self.video = cv2.VideoCapture(0)
+
+        self.stream()
+
+    def stop_stream(self):
+        self.streaming = False
+
+    # TODO: Fix resolution of the camera, add live detection of document shape
+    def stream(self):
+        ret, frame = self.video.read()
+
+        if ret:
+            # image_height = int(85 * root.winfo_height() / 100)
+            frame_downscaled = imutils.resize(frame, width=640)
+
+            # Both copies of the frame are processed in order to get the actual high-res one
+            frame_corrected = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame_downscaled = cv2.cvtColor(frame_downscaled, cv2.COLOR_BGR2RGB)
+
+            img = Image.fromarray(frame_downscaled)
+            display_img = ImageTk.PhotoImage(image=img)
+
+            self.webcam_display.configure(image=display_img)
+            self.webcam_display.image = display_img
+
+        if self.streaming:
+            self.webcam_display.after(10, self.stream)
+        else:
+            for child in self.frame_bottom.winfo_children():
+                child.destroy()
+
+            self.img_file = frame_corrected
+            self.img = frame_corrected
+
+            self.display_image(False)
 
 
 root = tk.Tk()
