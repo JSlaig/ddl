@@ -75,10 +75,10 @@ class DDL(tk.Frame):
         root.grid_columnconfigure(0, weight=1)
 
     def display_webcam(self):
-        self.video = None
+        self.video = cv2.VideoCapture(0)
 
         # Set elements for the webcam
-        pad_x = self.frame_bottom.winfo_width() / 3
+        pad_x = int((self.frame_bottom.winfo_width() - self.video.get(cv2.CAP_PROP_FRAME_WIDTH)) / 2)
 
         self.webcam_display = Label(self.frame_bottom, bg="black")
         self.webcam_display.grid(column=0, row=0, padx=pad_x, pady=5, sticky="EW")
@@ -107,16 +107,9 @@ class DDL(tk.Frame):
         img_downscale_preview = Image.fromarray(self.img_downscaled)
         img_downscale_preview_TK = ImageTk.PhotoImage(image=img_downscale_preview)
 
-        # Resize corners to fit exact same size as the picture
-        img_downscale_width = img_downscale_preview_TK.width()
-        img_downscale_height = img_downscale_preview_TK.height()
-
-        img_width = img_preview_TK.width()
-        img_height = img_preview_TK.height()
-
         # Calculation of ratio between original and downsized picture
-        self.width_ratio = img_width / img_downscale_width
-        self.height_ratio = img_height / img_downscale_height
+        self.width_ratio = img_preview.width / img_downscale_preview.width
+        self.height_ratio = img_preview.height / img_downscale_preview.height
 
         # Calculate the position of the points in the downscaled image
         points_downscaled = self.downscale_points(self.points)
@@ -124,14 +117,14 @@ class DDL(tk.Frame):
         # TODO: Might want to alter this to be class oriented as well
         self.clear_frame()
 
-        pad_x = self.frame_bottom.winfo_width() / 3
-        shape_cropper = ShapeCropper(root, self.frame_bottom, img_downscale_width, img_downscale_height,
+        pad_x = int((self.frame_bottom.winfo_width() - img_downscale_preview.width) / 2)
+        shape_cropper = ShapeCropper(root, self.frame_bottom, img_downscale_preview.width, img_downscale_preview.height,
                                      points_downscaled,
                                      img_downscale_preview_TK)
         shape_cropper.grid(column=0, row=0, padx=pad_x, pady=5, sticky="EW")
 
         btn_next = Button(self.frame_bottom, text="next", width=25,
-                          command=lambda: self.get_coordinates(shape_cropper, img_width, img_height))
+                          command=lambda: self.get_coordinates(shape_cropper, img_preview.width, img_preview.height))
         btn_next.grid(column=0, row=1, padx=pad_x, pady=5, sticky="EW")
 
     def load_image(self):
@@ -199,7 +192,7 @@ class DDL(tk.Frame):
         warped_preview_TK = ImageTk.PhotoImage(image=warped_preview)
 
         warp_label = Label(self.frame_bottom, image=warped_preview_TK)
-        pad_x = self.frame_bottom.winfo_width() / 3
+        pad_x = int((self.frame_bottom.winfo_width() - warped_preview.width) / 2)
         warp_label.grid(column=0, row=0, padx=pad_x, pady=5)
 
         # Everytime That an image load is needed
@@ -207,7 +200,11 @@ class DDL(tk.Frame):
 
     def start_stream(self):
         self.streaming = True
-        self.video = cv2.VideoCapture(0)
+
+        res_width = int(self.video.get(cv2.CAP_PROP_FRAME_WIDTH))
+        res_height = int(self.video.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+        print("Resolution: {} x {}".format(res_width, res_height))
 
         self.stream()
 
@@ -219,9 +216,6 @@ class DDL(tk.Frame):
         ret, frame = self.video.read()
 
         if ret:
-            # TODO:Try to crop it
-            # frame = frame[0:800, 0:800]
-
             image_height = int(85 * root.winfo_height() / 100)
             frame_downscaled = imutils.resize(frame, height=image_height)
 
