@@ -234,7 +234,6 @@ class DDL(tk.Frame):
     def stop_stream(self):
         self.streaming = False
 
-    # TODO: Fix resolution of the camera, add live detection of document shape
     def stream(self):
         ret, frame = self.video.read()
 
@@ -246,7 +245,16 @@ class DDL(tk.Frame):
             frame_corrected = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame_downscaled = cv2.cvtColor(frame_downscaled, cv2.COLOR_BGR2RGB)
 
-            img = Image.fromarray(frame_downscaled)
+            img_vertices = None
+
+            img_vertices = dps.detect_document_vertices(frame_downscaled)
+            boxed_img = dps.draw_image_contour(img_vertices, frame_downscaled)
+
+            if img_vertices is not None:
+                img = Image.fromarray(boxed_img)
+            else:
+                img = Image.fromarray(frame_downscaled)
+
             display_img = ImageTk.PhotoImage(image=img)
 
             self.webcam_display.configure(image=display_img)

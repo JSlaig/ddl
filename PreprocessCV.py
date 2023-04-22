@@ -43,8 +43,7 @@ def get_image_biggest_contour(contours):
     return biggest
 
 
-def draw_image_contour(point1, point2, point3, point4, image):
-    biggest = np.array([[point1], [point2], [point3], [point4]])
+def draw_image_contour(biggest, image):
     biggest = utlis.reorder(biggest)
     cv2.drawContours(image, biggest, -1, (0, 255, 0), 20)  # DRAW THE BIGGEST CONTOUR
     utlis.draw_rectangle(image, biggest, 2)
