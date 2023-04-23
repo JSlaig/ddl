@@ -4,10 +4,6 @@ import numpy as np
 import utlis
 
 
-# Since the function goes through several steps, I will split it into different
-# functions that don't use a loop to start to make it able to use the image we
-# load in the gui from the filesystem
-
 def get_image_grayscale(image):
     return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # CONVERT IMAGE TO GRAY SCALE
 
@@ -33,6 +29,7 @@ def get_image_edge_detector(image):
 
 def get_image_contours(image, original):
     contours, hierarchy = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # FIND ALL CONTOURS
+
     return cv2.drawContours(original, contours, -1, (0, 255, 0), 10), contours  # DRAW ALL DETECTED CONTOURS
 
 
@@ -44,13 +41,16 @@ def get_image_biggest_contour(contours):
 
 
 def draw_image_contour(biggest, image):
-    biggest = utlis.reorder(biggest)
-    cv2.drawContours(image, biggest, -1, (0, 255, 0), 20)  # DRAW THE BIGGEST CONTOUR
-    utlis.draw_rectangle(image, biggest, 2)
-    return image
 
-# TODO: Something gets fucked up in here always in terms of detection
+    biggest = utlis.reorder(biggest)
+    drawn_image = utlis.draw_rectangle(image, biggest, 2)
+
+    return drawn_image
+
+
 def detect_document_vertices(image_source):
+    default = False
+
     image_aux = image_source
 
     # Copy of the original image
@@ -70,12 +70,16 @@ def detect_document_vertices(image_source):
 
     # In case no contour is detected, we establish a default one
     if biggest.size == 0:
+        default = True
+
         height, width = image_aux.shape[:2]
 
         # Set up the 4 points of the image based on the resolution of the picture, with an aspect ratio of 1:1.4
-        biggest = np.array([[int(width / 4), int(height / 4)], [int(3 * width / 4), int(height / 4)], [int(width / 4), int(3 * height / 4)],
+        biggest = np.array([[int(width / 4), int(height / 4)], [int(3 * width / 4), int(height / 4)],
+                            [int(width / 4), int(3 * height / 4)],
                             [int(3 * width / 4), int(3 * height / 4)]])
-    return biggest
+
+    return biggest, default
 
 
 def img_warp(contour, img, width, height):

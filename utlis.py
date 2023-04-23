@@ -25,7 +25,10 @@ def stack_images(img_array, scale, labels=[]):
     else:
         for x in range(0, rows):
             img_array[x] = cv2.resize(img_array[x], (0, 0), None, scale, scale)
-            if len(img_array[x].shape) == 2: img_array[x] = cv2.cvtColor(img_array[x], cv2.COLOR_GRAY2BGR)
+
+            if len(img_array[x].shape) == 2:
+                img_array[x] = cv2.cvtColor(img_array[x], cv2.COLOR_GRAY2BGR)
+
         hor = np.hstack(img_array)
         hor_con = np.concatenate(img_array)
         ver = hor
@@ -34,8 +37,6 @@ def stack_images(img_array, scale, labels=[]):
         each_img_height = int(ver.shape[0] / rows)
 
     return ver
-
-
 
 
 def biggest_contour(contours):
@@ -48,7 +49,7 @@ def biggest_contour(contours):
         # the program itself, thing is that it affects the detection of shape somehow
         # by avoiding areas smaller than the value specified, when the picture is way too
         # small, the if does not trigger and therefore a later error is triggered
-        # TODO: Find sweet-spot for the area value gate-keeping and manage the error in case the picture is too small
+        # TODO: Find sweet-spot for the area value
         if area > 2000:
             peri = cv2.arcLength(i, True)
 
@@ -62,26 +63,38 @@ def biggest_contour(contours):
 
 
 def draw_rectangle(img, biggest, thickness):
-    cv2.line(img, (biggest[0][0][0], biggest[0][0][1]), (biggest[1][0][0], biggest[1][0][1]), (0, 255, 0), thickness)
-    cv2.line(img, (biggest[0][0][0], biggest[0][0][1]), (biggest[2][0][0], biggest[2][0][1]), (0, 255, 0), thickness)
-    cv2.line(img, (biggest[3][0][0], biggest[3][0][1]), (biggest[2][0][0], biggest[2][0][1]), (0, 255, 0), thickness)
-    cv2.line(img, (biggest[3][0][0], biggest[3][0][1]), (biggest[1][0][0], biggest[1][0][1]), (0, 255, 0), thickness)
 
-    return img
+    img_copy = img.copy()
+
+    cv2.line(img_copy, (biggest[0][0][0], biggest[0][0][1]), (biggest[1][0][0], biggest[1][0][1]), (173, 216, 230),
+             thickness)
+    cv2.line(img_copy, (biggest[0][0][0], biggest[0][0][1]), (biggest[2][0][0], biggest[2][0][1]), (173, 216, 230),
+             thickness)
+    cv2.line(img_copy, (biggest[3][0][0], biggest[3][0][1]), (biggest[2][0][0], biggest[2][0][1]), (173, 216, 230),
+             thickness)
+    cv2.line(img_copy, (biggest[3][0][0], biggest[3][0][1]), (biggest[1][0][0], biggest[1][0][1]), (173, 216, 230),
+             thickness)
+
+    return img_copy
+
 
 def reorder(my_points):
     my_points = np.array(my_points)
     my_points = my_points.reshape((4, 2))
     my_points_new = np.zeros((4, 1, 2), dtype=np.int32)
+
     add = my_points.sum(1)
 
     my_points_new[0] = my_points[np.argmin(add)]
     my_points_new[3] = my_points[np.argmax(add)]
+
     diff = np.diff(my_points, axis=1)
+
     my_points_new[1] = my_points[np.argmin(diff)]
     my_points_new[2] = my_points[np.argmax(diff)]
 
     return my_points_new
+
 
 def nothing(x):
     pass

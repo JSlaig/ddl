@@ -10,11 +10,13 @@ import threading
 
 import cv2
 import imutils
+import numpy as np
 
 from PIL import Image, ImageTk
 from screeninfo import get_monitors
 
 import PreprocessCV as dps
+import utlis
 from ShapeCropper import ShapeCropper
 
 
@@ -104,7 +106,7 @@ class DDL(tk.Frame):
 
         # Get the original vertices
         # Needs to be changed in order to be outputted as np array
-        self.points = dps.detect_document_vertices(self.img_file)
+        self.points, default = dps.detect_document_vertices(self.img_file)
 
         image_height = int(85 * root.winfo_height() / 100)
         self.img_downscaled = imutils.resize(self.img, height=image_height)
@@ -245,12 +247,10 @@ class DDL(tk.Frame):
             frame_corrected = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame_downscaled = cv2.cvtColor(frame_downscaled, cv2.COLOR_BGR2RGB)
 
-            img_vertices = None
-
-            img_vertices = dps.detect_document_vertices(frame_downscaled)
+            img_vertices, default = dps.detect_document_vertices(frame_downscaled)
             boxed_img = dps.draw_image_contour(img_vertices, frame_downscaled)
 
-            if img_vertices is not None:
+            if not default:
                 img = Image.fromarray(boxed_img)
             else:
                 img = Image.fromarray(frame_downscaled)
