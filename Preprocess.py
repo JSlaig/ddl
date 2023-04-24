@@ -66,24 +66,22 @@ def draw_image_contour(biggest, image):
     return drawn_image
 
 
-def detect_document_vertices(image_source):
+def detect_document_vertices(img):
     # Flag used in the webcam mode to see if the prediction is default
     # or a real one indeed
     flag_default = False
 
-    image_aux = image_source
-
     # Copy of the original image
-    original_image = image_aux.copy()
+    img_copy = img.copy()
 
     # Firstly, we turn the image into grayScale
-    image_aux = cv2.cvtColor(image_aux, cv2.COLOR_BGR2GRAY)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # Secondly, we run edge detector through the image
-    image_aux = get_edges(image_aux)
+    img = get_edges(img)
 
     # Thirdly, we have to find the contours present in the picture
-    image_aux, contours = get_contours(image_aux, original_image)
+    img, contours = get_contours(img, img_copy)
 
     # Fourth step is to find the actual biggest contour and draw it on the image
     biggest = get_biggest_contour(contours)
@@ -92,7 +90,7 @@ def detect_document_vertices(image_source):
     if biggest.size == 0:
         flag_default = True
 
-        height, width = image_aux.shape[:2]
+        height, width = img.shape[:2]
 
         # Set up the 4 points of the image based on the resolution of the picture, with an aspect ratio of 1:1.4
         biggest = np.array([[int(width / 4), int(height / 4)], [int(3 * width / 4), int(height / 4)],
