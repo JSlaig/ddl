@@ -11,9 +11,9 @@ from PIL import Image, ImageTk
 from screeninfo import get_monitors
 
 from Preprocessors import preprocess_image as ipp
+from Preprocessors import preprocess_document as ppd
 
 from UI import shape_cropper as sp
-
 
 
 # Initial window size based on resolution
@@ -131,60 +131,15 @@ class DDL(tk.Frame):
 
         pad_x = int((self.frame_bottom.winfo_width() - img_downscale_preview.width) / 2)
         cropper = sp.ShapeCropper(root, self.frame_bottom, img_downscale_preview.width, img_downscale_preview.height,
-                                     points_downscaled,
-                                     img_downscale_preview_TK)
+                                  points_downscaled,
+                                  img_downscale_preview_TK)
         cropper.grid(column=0, row=0, padx=pad_x, pady=5, sticky="EW")
 
         btn_next = Button(self.frame_bottom, text="next", width=25,
-                          command=lambda: self.get_coordinates(cropper, img_preview.width, img_preview.height))
+                          command=lambda: self.display_warped(cropper, img_preview.width, img_preview.height))
         btn_next.grid(column=0, row=1, padx=pad_x, pady=5, sticky="EW")
 
-    def load_image(self):
-        path = filedialog.askopenfilename(filetypes=[("image", ".jpg"),
-                                                     ("image", ".jpeg"),
-                                                     ("image", ".png")])
-
-        if len(path) > 0:
-            # Read image on opencv
-            self.img_file = cv2.imread(path)
-
-            # Adjust color
-            self.img = cv2.cvtColor(self.img_file, cv2.COLOR_BGR2RGB)
-
-    def downscale_points(self, points):
-        # TODO: Once the structure of the array is no longer double-bracketed
-        #   change the way they work from points[2][0][1] to points[2][1]
-
-        points[0][0][0] = points[0][0][0] / self.width_ratio
-        points[0][0][1] = points[0][0][1] / self.height_ratio
-
-        points[1][0][0] = points[1][0][0] / self.width_ratio
-        points[1][0][1] = points[1][0][1] / self.height_ratio
-
-        points[2][0][0] = points[2][0][0] / self.width_ratio
-        points[2][0][1] = points[2][0][1] / self.height_ratio
-
-        points[3][0][0] = points[3][0][0] / self.width_ratio
-        points[3][0][1] = points[3][0][1] / self.height_ratio
-
-        return points
-
-    def upscale_points(self, points):
-        points[0][0] = points[0][0] * self.width_ratio
-        points[0][1] = points[0][1] * self.height_ratio
-
-        points[1][0] = points[1][0] * self.width_ratio
-        points[1][1] = points[1][1] * self.height_ratio
-
-        points[2][0] = points[2][0] * self.width_ratio
-        points[2][1] = points[2][1] * self.height_ratio
-
-        points[3][0] = points[3][0] * self.width_ratio
-        points[3][1] = points[3][1] * self.height_ratio
-
-        return points
-
-    def get_coordinates(self, shape_cropper, img_width, img_height):
+    def display_warped(self, shape_cropper, img_width, img_height):
         # Get cropped coordinates
         new_downscaled_points = shape_cropper.get_tokens()
 
@@ -202,6 +157,7 @@ class DDL(tk.Frame):
         a4_height = Image.fromarray(warped_image).height
         a4_width = int(a4_height * aspect_ratio)
 
+        # This is the image over which we need to do stuff later
         warped_image = cv2.resize(warped_image, (a4_width, a4_height))
 
         image_height = int(85 * root.winfo_height() / 100)
@@ -216,8 +172,21 @@ class DDL(tk.Frame):
 
         warp_label.grid(column=0, row=0, padx=pad_x, pady=5)
 
+        btn_next = Button(self.frame_bottom, text="next", width=25,
+                          command=lambda: self.display_paragraph_segmented(warped_image))
+        btn_next.grid(column=0, row=1, padx=pad_x, pady=5, sticky="EW")
+
         # Everytime That an image load is needed
         root.mainloop()
+
+    def display_paragraph_segmented(self, sheet):
+        self.clear_frame()
+
+        segmented_sheet = ppd.get_paragraph(sheet)
+
+        cv2.imshow("Segmented paragraphs", segmented_sheet)
+
+        cv2.waitkey(0)
 
     def start_stream(self):
         self.streaming = True
@@ -269,9 +238,56 @@ class DDL(tk.Frame):
 
             self.display_image(False)
 
+    # ///////////////////////////////// AUXILIARY /////////////////////////////////
+
     def clear_frame(self):
         for child in self.frame_bottom.winfo_children():
             child.destroy()
+
+    def load_image(self):
+        path = filedialog.askopenfilename(filetypes=[("image", ".jpg"),
+                                                     ("image", ".jpeg"),
+                                                     ("image", ".png")])
+
+        if len(path) > 0:
+            # Read image on opencv
+            self.img_file = cv2.imread(path)
+
+            # Adjust color
+            self.img = cv2.cvtColor(self.img_file, cv2.COLOR_BGR2RGB)
+
+    def downscale_points(self, points):
+        # TODO: Once the structure of the array is no longer double-bracketed
+        #   change the way they work from points[2][0][1] to points[2][1]
+
+        points[0][0][0] = points[0][0][0] / self.width_ratio
+        points[0][0][1] = points[0][0][1] / self.height_ratio
+
+        points[1][0][0] = points[1][0][0] / self.width_ratio
+        points[1][0][1] = points[1][0][1] / self.height_ratio
+
+        points[2][0][0] = points[2][0][0] / self.width_ratio
+        points[2][0][1] = points[2][0][1] / self.height_ratio
+
+        points[3][0][0] = points[3][0][0] / self.width_ratio
+        points[3][0][1] = points[3][0][1] / self.height_ratio
+
+        return points
+
+    def upscale_points(self, points):
+        points[0][0] = points[0][0] * self.width_ratio
+        points[0][1] = points[0][1] * self.height_ratio
+
+        points[1][0] = points[1][0] * self.width_ratio
+        points[1][1] = points[1][1] * self.height_ratio
+
+        points[2][0] = points[2][0] * self.width_ratio
+        points[2][1] = points[2][1] * self.height_ratio
+
+        points[3][0] = points[3][0] * self.width_ratio
+        points[3][1] = points[3][1] * self.height_ratio
+
+        return points
 
 
 root = tk.Tk()
