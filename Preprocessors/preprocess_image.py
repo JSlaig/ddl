@@ -20,20 +20,24 @@ def get_edges(img, threshold_1=10, threshold_2=80, flag_dev=False):
 
     img_eroded = cv2.erode(img_dilated, kernel, iterations=1)  # APPLY EROSION
 
+    ret, img_otsu = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
     # TODO: Make this actually be triggered by checkbox in UI
     if flag_dev:
         # downscale each pic to be able to see them
         img_blur_ds = imutils.resize(img_blur, height=400)
         img_dilated_ds = imutils.resize(img_dilated, height=400)
         img_eroded_ds = imutils.resize(img_eroded, height=400)
+        img_otsu_ds = imutils.resize(img_otsu, height=400)
 
         cv2.imshow("Gaussian Blurred", img_blur_ds)
         cv2.imshow("Dilated", img_dilated_ds)
         cv2.imshow("Eroded", img_eroded_ds)
+        cv2.imshow("Otsu", img_otsu_ds)
 
         cv2.waitkey(0)
 
-    return img_eroded
+    return img_otsu
 
 
 def get_contours(img, original, dev=False):

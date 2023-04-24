@@ -12,7 +12,8 @@ from screeninfo import get_monitors
 
 from Preprocessors import preprocess_image as ipp
 
-from UI import shape_cropper
+from UI import shape_cropper as sp
+
 
 
 # Initial window size based on resolution
@@ -129,13 +130,13 @@ class DDL(tk.Frame):
         self.clear_frame()
 
         pad_x = int((self.frame_bottom.winfo_width() - img_downscale_preview.width) / 2)
-        shape_cropper = ShapeCropper(root, self.frame_bottom, img_downscale_preview.width, img_downscale_preview.height,
+        cropper = sp.ShapeCropper(root, self.frame_bottom, img_downscale_preview.width, img_downscale_preview.height,
                                      points_downscaled,
                                      img_downscale_preview_TK)
-        shape_cropper.grid(column=0, row=0, padx=pad_x, pady=5, sticky="EW")
+        cropper.grid(column=0, row=0, padx=pad_x, pady=5, sticky="EW")
 
         btn_next = Button(self.frame_bottom, text="next", width=25,
-                          command=lambda: self.get_coordinates(shape_cropper, img_preview.width, img_preview.height))
+                          command=lambda: self.get_coordinates(cropper, img_preview.width, img_preview.height))
         btn_next.grid(column=0, row=1, padx=pad_x, pady=5, sticky="EW")
 
     def load_image(self):
