@@ -37,7 +37,6 @@ class DDL(tk.Frame):
         self.webcam_display = None
         self.video = None
         self.points = None
-        self.img_file = None
         self.height_ratio = None
         self.width_ratio = None
         self.master = master
@@ -102,7 +101,7 @@ class DDL(tk.Frame):
 
         # Get the original vertices
         # Needs to be changed in order to be outputted as np array
-        self.points, default = ipp.detect_document_vertices(self.img_file)
+        self.points, default = ipp.detect_document_vertices(self.img)
 
         image_height = int(85 * root.winfo_height() / 100)
         self.img_downscaled = imutils.resize(self.img, height=image_height)
@@ -150,7 +149,7 @@ class DDL(tk.Frame):
         self.clear_frame()
 
         # This is the warped image over which we will operate
-        warped_image = ipp.img_warp(self.points, self.img_file, img_width, img_height)
+        warped_image = ipp.img_warp(self.points, self.img, img_width, img_height)
 
         aspect_ratio = 1 / math.sqrt(2)
 
@@ -233,7 +232,6 @@ class DDL(tk.Frame):
         else:
             self.clear_frame()
 
-            self.img_file = frame_corrected
             self.img = frame_corrected
 
             self.display_image(False)
@@ -251,10 +249,10 @@ class DDL(tk.Frame):
 
         if len(path) > 0:
             # Read image on opencv
-            self.img_file = cv2.imread(path)
+            img_file = cv2.imread(path)
 
             # Adjust color
-            self.img = cv2.cvtColor(self.img_file, cv2.COLOR_BGR2RGB)
+            self.img = cv2.cvtColor(img_file, cv2.COLOR_BGR2RGB)
 
     def downscale_points(self, points):
         # TODO: Once the structure of the array is no longer double-bracketed
