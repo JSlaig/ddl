@@ -5,8 +5,8 @@ import numpy as np
 import utlis
 
 
-def get_edges(image, threshold_1=10, threshold_2=80, flag_dev=False):
-    img_blur = cv2.GaussianBlur(image, (5, 5), 1)  # ADD GAUSSIAN BLUR
+def get_edges(img, threshold_1=10, threshold_2=80, flag_dev=False):
+    img_blur = cv2.GaussianBlur(img, (5, 5), 1)  # ADD GAUSSIAN BLUR
 
     # TODO: make these work as params
     # Thresholds will be calculated automatically, since I need to find the sweetspot
@@ -36,8 +36,8 @@ def get_edges(image, threshold_1=10, threshold_2=80, flag_dev=False):
     return img_eroded
 
 
-def get_contours(image, original, dev=False):
-    contours, hierarchy = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # FIND ALL CONTOURS
+def get_contours(img, original, dev=False):
+    contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # FIND ALL CONTOURS
 
     drawn_contours = cv2.drawContours(original, contours, -1, (0, 255, 0), 10)  # DRAW ALL DETECTED CONTOURS
 
@@ -59,11 +59,11 @@ def get_biggest_contour(contours):
     return biggest
 
 
-def draw_image_contour(biggest, image):
+def draw_image_contour(biggest, img):
     biggest = utlis.reorder(biggest)
-    drawn_image = utlis.draw_rectangle(image, biggest, 2)
+    drawn_img = utlis.draw_rectangle(img, biggest, 2)
 
-    return drawn_image
+    return drawn_img
 
 
 def detect_document_vertices(img):
@@ -105,7 +105,9 @@ def img_warp(contour, img, width, height):
 
     pts1 = np.float32(contour)  # PREPARE POINTS FOR WARP
     pts2 = np.float32([[0, 0], [width, 0], [0, height], [width, height]])  # PREPARE POINTS FOR WARP
+
     matrix = cv2.getPerspectiveTransform(pts1, pts2)
+
     img_warp_colored = cv2.warpPerspective(img, matrix, (width, height))
 
     # REMOVE 20 PIXELS FORM EACH SIDE
