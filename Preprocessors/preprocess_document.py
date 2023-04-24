@@ -13,16 +13,15 @@ def get_paragraph(sheet, flag_dev=False):
     # We invert the binary filter in order for the lettering in the sheet to be white and expandable
     sheet_otsu = cv2.threshold(sheet_blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 
-
     # Create rectangular structuring element and dilate
     # May need to have elements in the ui in order to modify for proper detection
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (8, 8))
     sheet_dilated = cv2.dilate(sheet_otsu, kernel, iterations=4)
 
-    sheet_bboxed = draw_paragraph(sheet_dilated, sheet)
+    sheet_bboxed, contours = draw_paragraph(sheet_dilated, sheet)
 
     # TODO: Manage with checkbox on UI
-    flag_dev = True
+    # flag_dev = True
     if flag_dev:
         sheet_gray_ds = imutils.resize(sheet_gray, height=600)
         sheet_blur_ds = imutils.resize(sheet_blur, height=600)
@@ -34,11 +33,11 @@ def get_paragraph(sheet, flag_dev=False):
         cv2.imshow("Blur", sheet_blur_ds)
         cv2.imshow("Binary Otsu", sheet_otsu_ds)
         cv2.imshow("Dilated", sheet_dilated_ds)
-        cv2.imshow("Bound Boxed", sheet_bboxed_ds)
+        cv2.imshow("Bound Boxed", cv2.cvtColor(sheet_bboxed_ds, cv2.COLOR_BGR2RGB))
 
         cv2.waitkey(0)
 
-    return None
+    return sheet_bboxed, contours
 
 
 def draw_paragraph(dilated_sheet, sheet):
@@ -52,4 +51,4 @@ def draw_paragraph(dilated_sheet, sheet):
         x, y, w, h = cv2.boundingRect(c)
         cv2.rectangle(sheet_copy, (x, y), (x + w, y + h), (36, 255, 12), 2)
 
-    return sheet_copy
+    return sheet_copy, contours

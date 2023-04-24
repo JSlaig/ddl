@@ -14,6 +14,7 @@ from Preprocessors import preprocess_image as ipp
 from Preprocessors import preprocess_document as ppd
 
 from UI import shape_cropper as sp
+from Utils import utlis
 
 
 # Initial window size based on resolution
@@ -135,12 +136,12 @@ class DDL(tk.Frame):
         cropper.grid(column=0, row=0, padx=pad_x, pady=5, sticky="EW")
 
         btn_next = Button(self.frame_bottom, text="next", width=25,
-                          command=lambda: self.display_warped(cropper, img_preview.width, img_preview.height))
+                          command=lambda: self.display_warped(cropper.get_tokens(), img_preview.width, img_preview.height))
         btn_next.grid(column=0, row=1, padx=pad_x, pady=5, sticky="EW")
 
-    def display_warped(self, shape_cropper, img_width, img_height):
+    def display_warped(self, tokens, img_width, img_height):
         # Get cropped coordinates
-        new_downscaled_points = shape_cropper.get_tokens()
+        new_downscaled_points = tokens
 
         self.points = self.upscale_points(new_downscaled_points)
 
@@ -181,11 +182,29 @@ class DDL(tk.Frame):
     def display_paragraph_segmented(self, sheet):
         self.clear_frame()
 
-        segmented_sheet = ppd.get_paragraph(sheet)
+        segmented_sheet, paragraphs = ppd.get_paragraph(sheet)
 
-        cv2.imshow("Segmented paragraphs", segmented_sheet)
+        # TODO: I need to display this live with the changes made from two sliders in order to find proper
+        #   paragraph detection.
 
-        cv2.waitkey(0)
+        image_height = int(85 * root.winfo_height() / 100)
+
+        segmented_sheet_downscaled = imutils.resize(segmented_sheet, height=image_height)
+
+        segmented_sheet_downscaled_preview = Image.fromarray(segmented_sheet_downscaled)
+        segmented_sheet_downscaled_preview_TK = ImageTk.PhotoImage(image=segmented_sheet_downscaled_preview)
+
+        segmented_label = Label(self.frame_bottom, image=segmented_sheet_downscaled_preview_TK)
+        pad_x = int((self.frame_bottom.winfo_width() - segmented_sheet_downscaled_preview.width) / 2)
+
+        segmented_label.grid(column=0, row=0, padx=pad_x, pady=5)
+
+        btn_next = Button(self.frame_bottom, text="next", width=25,
+                          command=lambda: utlis.nothing('yes'))
+        btn_next.grid(column=0, row=1, padx=pad_x, pady=5, sticky="EW")
+
+        # Everytime That an image load is needed
+        root.mainloop()
 
     def start_stream(self):
         self.streaming = True
