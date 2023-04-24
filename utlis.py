@@ -99,16 +99,3 @@ def reorder(my_points):
 def nothing(x):
     pass
 
-
-def initialize_trackbars():
-    cv2.namedWindow("Trackbars")
-    cv2.resizeWindow("Trackbars", 360, 240)
-    cv2.createTrackbar("Threshold1", "Trackbars", 200, 255, nothing)
-    cv2.createTrackbar("Threshold2", "Trackbars", 200, 255, nothing)
-
-
-def val_trackbars():
-    threshold1 = cv2.getTrackbarPos("Threshold1", "Trackbars")
-    threshold2 = cv2.getTrackbarPos("Threshold2", "Trackbars")
-    src = threshold1, threshold2
-    return src

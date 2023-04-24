@@ -15,7 +15,7 @@ import numpy as np
 from PIL import Image, ImageTk
 from screeninfo import get_monitors
 
-import PreprocessCV as dps
+import Preprocess as dps
 import utlis
 from ShapeCropper import ShapeCropper
 
@@ -236,6 +236,9 @@ class DDL(tk.Frame):
     def stop_stream(self):
         self.streaming = False
 
+    # TODO:
+    #   -Extract elements as a class
+    #   -Enhance UI to be able to apply thresholds through a set of sliders
     def stream(self):
         ret, frame = self.video.read()
 
