@@ -1,23 +1,18 @@
 import math
 import tkinter as tk
 
-import time
-
 from tkinter import *
 from tkinter import filedialog
 
-import threading
-
 import cv2
 import imutils
-import numpy as np
 
 from PIL import Image, ImageTk
 from screeninfo import get_monitors
 
-import Preprocess as dps
-import utlis
-from ShapeCropper import ShapeCropper
+from Preprocessors import preprocess_image as ipp
+
+from UI import shape_cropper
 
 
 # Initial window size based on resolution
@@ -106,7 +101,7 @@ class DDL(tk.Frame):
 
         # Get the original vertices
         # Needs to be changed in order to be outputted as np array
-        self.points, default = dps.detect_document_vertices(self.img_file)
+        self.points, default = ipp.detect_document_vertices(self.img_file)
 
         image_height = int(85 * root.winfo_height() / 100)
         self.img_downscaled = imutils.resize(self.img, height=image_height)
@@ -199,7 +194,7 @@ class DDL(tk.Frame):
         self.clear_frame()
 
         # This is the warped image over which we will operate
-        warped_image = dps.img_warp(self.points, self.img_file, img_width, img_height)
+        warped_image = ipp.img_warp(self.points, self.img_file, img_width, img_height)
 
         aspect_ratio = 1 / math.sqrt(2)
 
@@ -250,8 +245,8 @@ class DDL(tk.Frame):
             frame_corrected = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame_downscaled = cv2.cvtColor(frame_downscaled, cv2.COLOR_BGR2RGB)
 
-            img_vertices, default = dps.detect_document_vertices(frame_downscaled)
-            boxed_img = dps.draw_image_contour(img_vertices, frame_downscaled)
+            img_vertices, default = ipp.detect_document_vertices(frame_downscaled)
+            boxed_img = ipp.draw_image_contour(img_vertices, frame_downscaled)
 
             if not default:
                 img = Image.fromarray(boxed_img)
