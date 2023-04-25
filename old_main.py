@@ -16,24 +16,9 @@ from Preprocessors import preprocess_document as ppd
 from UI import shape_cropper as sp
 from Utils import utlis
 
-
-# Initial window size based on resolution
-def configure_geometry():
-    main_monitor = None
-    for m in get_monitors():
-        if m.is_primary:
-            main_monitor = m
-
-    width = int(3 * main_monitor.width / 4)
-    height = int(3 * main_monitor.height / 4)
-
-    return width, height
-
-
 class DDL(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
-        self.stream_thread = None
         self.streaming = None
         self.webcam_display = None
         self.video = None
@@ -308,13 +293,6 @@ class DDL(tk.Frame):
 
 
 root = tk.Tk()
-
-root.title('DDL')  # Assignation of the window title
-root.wm_iconbitmap('Assets/DDL.ico')  # Setting an icon for the application
-
-# Setting the window size based on the monitor resolution
-window_width, window_height = configure_geometry()
-root.geometry(str(window_width) + "x" + str(window_height))
 
 app = DDL(master=root)
 app.mainloop()

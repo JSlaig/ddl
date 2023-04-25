@@ -2,6 +2,20 @@ import tkinter
 import tkinter.messagebox
 import customtkinter
 
+from tkinter import *
+from tkinter import filedialog
+
+import cv2
+import imutils
+
+from PIL import Image, ImageTk
+
+from Preprocessors import preprocess_image as ipp
+from Preprocessors import preprocess_document as ppd
+
+from UI import shape_cropper as sp
+from Utils import utlis
+
 from screeninfo import get_monitors
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
@@ -25,7 +39,14 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
 
-        # configure window
+        # Globals
+        self.height_ratio = None
+        self.width_ratio = None
+        self.img_downscaled = None
+        self.points = None
+        self.img = None
+
+        # configure window        
         self.title("DDL")
         # self.wm_iconbitmap('Assets/DDL.ico')  # Setting an icon for the application
 
@@ -46,10 +67,11 @@ class App(customtkinter.CTk):
                                                  font=customtkinter.CTkFont(size=20, weight="bold"))
         self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
 
-        self.load_button = customtkinter.CTkButton(self.sidebar_frame, text="Load", command=self.sidebar_button_event)
+        self.load_button = customtkinter.CTkButton(self.sidebar_frame, text="Load", command=lambda: self.display_image(True))
         self.load_button.grid(row=1, column=0, padx=20, pady=10)
 
-        self.camera_button = customtkinter.CTkButton(self.sidebar_frame, text="Camera", command=self.sidebar_button_event)
+        self.camera_button = customtkinter.CTkButton(self.sidebar_frame, text="Camera",
+                                                     command=self.sidebar_button_event)
         self.camera_button.grid(row=2, column=0, padx=20, pady=10)
 
         self.appearance_mode_label = customtkinter.CTkLabel(self.sidebar_frame, text="Appearance Mode:", anchor="w")
@@ -65,7 +87,9 @@ class App(customtkinter.CTk):
                                                                command=self.change_scaling_event)
         self.scaling_option_menu.grid(row=8, column=0, padx=20, pady=(10, 20))
 
-
+        # Create frame where image will be displayed
+        self.display_frame = customtkinter.CTkFrame(self)
+        self.display_frame.grid(row=1, column=1, columnspan=2, padx=(20, 0), pady=(20, 0), sticky="nsew")
 
         # TODO: Add in this frame when neccesary
         # Frame for future sliders
@@ -79,8 +103,6 @@ class App(customtkinter.CTk):
         # TODO: Add and remove these when necessary
         self.slider_1 = customtkinter.CTkSlider(self.slider_frame, from_=0, to=255, number_of_steps=255)
         self.slider_1.grid(row=3, column=0, padx=(20, 10), pady=(10, 10), sticky="ew")
-
-
 
         # TODO: Bottom bar will be use to print on it the pictures of the process
         # create main entry and button
@@ -100,6 +122,51 @@ class App(customtkinter.CTk):
         self.stage_buttons.configure(values=["Image Adjustment", "Image Crop Preview", "Paragraph Adjustment"])
         self.stage_buttons.set("Image Adjusting")
 
+    def display_image(self, load_from_filesystem):
+        if load_from_filesystem:
+            self.load_image()
+
+        # Get the original vertices
+        # Needs to be changed in order to be outputted as np array
+        self.points, default = ipp.detect_document_vertices(self.img)
+
+        image_height = int(85 * self.display_frame.winfo_height() / 100)
+        self.img_downscaled = imutils.resize(self.img, height=image_height)
+
+        # Translate to tkinter
+        img_preview = Image.fromarray(self.img)
+
+        img_downscale_preview = Image.fromarray(self.img_downscaled)
+        img_downscale_preview_TK = ImageTk.PhotoImage(image=img_downscale_preview)
+
+        # Calculation of ratio between original and downsized picture
+        print(img_preview.width)
+        print(img_downscale_preview.width)
+
+        self.width_ratio = img_preview.width / img_downscale_preview.width
+        self.height_ratio = img_preview.height / img_downscale_preview.height
+
+        print(self.width_ratio)
+        print(self.height_ratio)
+
+        # Calculate the position of the points in the downscaled image
+        points_downscaled = self.downscale_points(self.points)
+
+        # TODO: Might want to alter this to be class oriented as well
+        self.clear_frame()
+
+        pad_x = int((self.display_frame.winfo_width() - img_downscale_preview.width) / 2)
+        cropper = sp.ShapeCropper(self, self.display_frame, img_downscale_preview.width, img_downscale_preview.height,
+                                  points_downscaled,
+                                  img_downscale_preview_TK)
+        cropper.grid(column=0, row=0, padx=pad_x, pady=5, sticky="EW")
+
+        # TODO: Change into customtkinterbuttons
+        btn_next = Button(self.display_frame, text="next", width=25,
+                          command=lambda: self.display_warped(cropper.get_tokens(), img_preview.width,
+                                                              img_preview.height))
+        btn_next.grid(column=1, row=2, padx=pad_x, pady=5, sticky="EW")
+
     # TODO: Make this function show the developer stage pictures
     def open_dev_image_dialog_event(self):
         dialog = customtkinter.CTkInputDialog(text="Type in a number:", title="CTkInputDialog")
@@ -114,6 +181,58 @@ class App(customtkinter.CTk):
 
     def sidebar_button_event(self):
         print("sidebar_button click")
+
+    # ///////////////////////////////// AUXILIARY /////////////////////////////////
+
+    # TODO: Must clear the frame with widgets for changing params as well
+    def clear_frame(self):
+        for child in self.display_frame.winfo_children():
+            child.destroy()
+
+    def load_image(self):
+        path = filedialog.askopenfilename(filetypes=[("image", ".jpg"),
+                                                     ("image", ".jpeg"),
+                                                     ("image", ".png")])
+
+        if len(path) > 0:
+            # Read image on opencv
+            img_file = cv2.imread(path)
+
+            # Adjust color
+            self.img = cv2.cvtColor(img_file, cv2.COLOR_BGR2RGB)
+
+    def downscale_points(self, points):
+        # TODO: Once the structure of the array is no longer double-bracketed
+        #   change the way they work from points[2][0][1] to points[2][1]
+
+        points[0][0][0] = points[0][0][0] / self.width_ratio
+        points[0][0][1] = points[0][0][1] / self.height_ratio
+
+        points[1][0][0] = points[1][0][0] / self.width_ratio
+        points[1][0][1] = points[1][0][1] / self.height_ratio
+
+        points[2][0][0] = points[2][0][0] / self.width_ratio
+        points[2][0][1] = points[2][0][1] / self.height_ratio
+
+        points[3][0][0] = points[3][0][0] / self.width_ratio
+        points[3][0][1] = points[3][0][1] / self.height_ratio
+
+        return points
+
+    def upscale_points(self, points):
+        points[0][0] = points[0][0] * self.width_ratio
+        points[0][1] = points[0][1] * self.height_ratio
+
+        points[1][0] = points[1][0] * self.width_ratio
+        points[1][1] = points[1][1] * self.height_ratio
+
+        points[2][0] = points[2][0] * self.width_ratio
+        points[2][1] = points[2][1] * self.height_ratio
+
+        points[3][0] = points[3][0] * self.width_ratio
+        points[3][1] = points[3][1] * self.height_ratio
+
+        return points
 
 
 if __name__ == "__main__":
