@@ -54,8 +54,8 @@ class App(customtkinter.CTk):
         self.geometry(f"{str(window_width)}x{str(window_height)}")
 
         # configure grid layout (4x4)
-        self.grid_columnconfigure(1, weight=1)
-        self.grid_columnconfigure((2, 3), weight=0)
+        self.grid_columnconfigure(1, weight=4)
+        self.grid_columnconfigure(2, weight=1)
         self.grid_rowconfigure(1, weight=1)
 
         # create sidebar frame with widgets
@@ -90,28 +90,33 @@ class App(customtkinter.CTk):
 
         # Create frame where image will be displayed
         self.display_frame = customtkinter.CTkFrame(self)
-        self.display_frame.grid(row=1, column=1, columnspan=2, padx=(20, 0), pady=(20, 0), sticky="nsew")
+        self.display_frame.grid(row=0, column=1, rowspan=2, columnspan=2, padx=(20, 0), pady=(20, 0), sticky="nsew")
 
         # TODO: Add in this frame when neccesary
         # Frame for future sliders
         self.r_sidebar_frame = customtkinter.CTkFrame(self)
-        self.r_sidebar_frame.grid(row=1, column=3, padx=(20, 20), pady=(20, 0), sticky="nsew")
+        self.r_sidebar_frame.grid(row=0, column=3, rowspan=2, padx=(20, 20), pady=(20, 0), sticky="nsew")
 
-        self.param_frame = customtkinter.CTkFrame(self.r_sidebar_frame)
-        self.param_frame.grid(row=0, column=0, padx=(20, 20), pady=(10, 10), sticky="new")
+        self.r_sidebar_frame.grid_rowconfigure(0, weight=1)
+        self.r_sidebar_frame.grid_rowconfigure(1, weight=8)
+        self.r_sidebar_frame.grid_rowconfigure(2, weight=1)
 
-        self.r_sidebar_frame.grid_rowconfigure(0, weight=10)
-        self.r_sidebar_frame.grid_rowconfigure(1, weight=1)
+        self.stage_frame = customtkinter.CTkFrame(self.r_sidebar_frame)
+        self.stage_frame.grid(row=0, column=0, rowspan=1, padx=(20, 20), pady=(10, 10), sticky="new")
 
-        self.next_button_frame = customtkinter.CTkFrame(self.r_sidebar_frame)
-        self.next_button_frame.grid(row=1, column=0, padx=(20, 20), pady=(10, 10), sticky="sew")
+        self.slider_frame = customtkinter.CTkFrame(self.r_sidebar_frame, height=20)
+        self.slider_frame.grid(row=1, column=0, rowspan=1, padx=(20, 20), pady=(10, 10), sticky="ew")
+
+        self.next_button_frame = customtkinter.CTkFrame(self.r_sidebar_frame, height=48)
+        self.next_button_frame.grid(row=2, column=0, rowspan=1, padx=(20, 20), pady=(10, 10), sticky="sew")
 
         # TODO: Modify in order to be able to swap through stages?
-        self.stage_buttons = customtkinter.CTkSegmentedButton(self.param_frame)
-        self.stage_buttons.grid(row=0, column=0, padx=(20, 10), pady=(10, 10), sticky="ew")
+        self.stage_buttons = customtkinter.CTkSegmentedButton(self.stage_frame)
+        self.stage_buttons.grid(row=0, column=0, padx=40, pady=(10, 10), sticky="nsew")
 
         # TODO: Add and remove these when necessary
-        self.slider_1 = customtkinter.CTkSlider(self.param_frame, from_=0, to=255, number_of_steps=255)
+        # Preset will be needed with some labels in the case of the webcam and in paragraph detection
+        self.slider_1 = customtkinter.CTkSlider(self.slider_frame, from_=0, to=255, number_of_steps=255)
         self.slider_1.grid(row=3, column=0, padx=(20, 10), pady=(10, 10), sticky="ew")
 
         # TODO: Bottom bar will be use to print on it the pictures of the process
@@ -129,8 +134,7 @@ class App(customtkinter.CTk):
         self.scaling_option_menu.set("100%")
 
         # TODO: Config will depend on whether we are on camera or load image version
-        self.stage_buttons.configure(values=["Image Adjustment", "Image Crop Preview", "Paragraph Adjustment"])
-        self.stage_buttons.set("Image Adjustment")
+        self.stage_buttons.configure(values=["Crop", "Warp", "Paragraph"], state=DISABLED)
 
     def display_image(self, load_from_filesystem):
         if load_from_filesystem:
@@ -173,6 +177,8 @@ class App(customtkinter.CTk):
                                                                                img_preview.width,
                                                                                img_preview.height))
         btn_next.grid(column=1, row=0, columnspan=3, padx=(10, 10), pady=(10, 10), sticky="NSEW")
+
+        self.stage_buttons.set("Crop")
 
     # TODO: Make this function show the developer stage pictures
     def open_dev_image_dialog_event(self):
