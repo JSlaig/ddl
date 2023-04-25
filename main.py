@@ -142,6 +142,8 @@ class App(customtkinter.CTk):
     # TODO: Enhance UI to be able to apply thresholds through a set of sliders
     def display_webcam(self):
 
+        self.stage_buttons.set("")
+
         self.clear_frame()
 
         self.video = cv2.VideoCapture(0)
@@ -316,7 +318,7 @@ class App(customtkinter.CTk):
         pad_x = int((self.display_frame.winfo_width() - warped_preview.width) / 2)
         pad_y = 10
 
-        warp_label = Label(self.display_frame, image=warped_preview_TK)
+        warp_label = Label(self.display_frame, bg="black", image=warped_preview_TK)
         warp_label.grid(column=0, row=0, padx=pad_x, pady=pad_y)
 
         btn_next = customtkinter.CTkButton(self.next_button_frame, width=self.next_button_frame.winfo_width() - 20,
@@ -328,15 +330,14 @@ class App(customtkinter.CTk):
         # Everytime That an image load is needed
         self.stage_frame.mainloop()
 
+    # TODO: I need to display this live with the changes made from two sliders in order to find proper
+    #   paragraph detection.
     def display_paragraph_segmented(self, sheet):
         self.clear_frame()
 
         self.stage_buttons.set("Paragraph")
 
         segmented_sheet, paragraphs = ppd.get_paragraph(sheet)
-
-        # TODO: I need to display this live with the changes made from two sliders in order to find proper
-        #   paragraph detection.
 
         image_height = self.display_frame.winfo_height() - 20
 
@@ -345,9 +346,9 @@ class App(customtkinter.CTk):
         segmented_sheet_downscaled_preview = Image.fromarray(segmented_sheet_downscaled)
         segmented_sheet_downscaled_preview_TK = ImageTk.PhotoImage(image=segmented_sheet_downscaled_preview)
 
-        segmented_label = Label(self.display_frame, image=segmented_sheet_downscaled_preview_TK)
         pad_x = int((self.display_frame.winfo_width() - segmented_sheet_downscaled_preview.width) / 2)
 
+        segmented_label = Label(self.display_frame, bg="black", image=segmented_sheet_downscaled_preview_TK)
         segmented_label.grid(column=0, row=0, padx=pad_x, pady=5)
 
         btn_next = customtkinter.CTkButton(self.next_button_frame, width=self.next_button_frame.winfo_width() - 20,
