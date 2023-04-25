@@ -81,33 +81,6 @@ class DDL(tk.Frame):
 
         self.start_stream()
 
-    def display_paragraph_segmented(self, sheet):
-        self.clear_frame()
-
-        segmented_sheet, paragraphs = ppd.get_paragraph(sheet)
-
-        # TODO: I need to display this live with the changes made from two sliders in order to find proper
-        #   paragraph detection.
-
-        image_height = int(85 * root.winfo_height() / 100)
-
-        segmented_sheet_downscaled = imutils.resize(segmented_sheet, height=image_height)
-
-        segmented_sheet_downscaled_preview = Image.fromarray(segmented_sheet_downscaled)
-        segmented_sheet_downscaled_preview_TK = ImageTk.PhotoImage(image=segmented_sheet_downscaled_preview)
-
-        segmented_label = Label(self.frame_bottom, image=segmented_sheet_downscaled_preview_TK)
-        pad_x = int((self.frame_bottom.winfo_width() - segmented_sheet_downscaled_preview.width) / 2)
-
-        segmented_label.grid(column=0, row=0, padx=pad_x, pady=5)
-
-        btn_next = Button(self.frame_bottom, text="next", width=25,
-                          command=lambda: utlis.nothing('yes'))
-        btn_next.grid(column=0, row=1, padx=pad_x, pady=5, sticky="EW")
-
-        # Everytime That an image load is needed
-        root.mainloop()
-
     def start_stream(self):
         self.streaming = True
 

@@ -41,6 +41,13 @@ class App(customtkinter.CTk):
         super().__init__()
 
         # Globals
+        self.thres_2_label = None
+        self.thres_1_label = None
+        self.slider_2 = None
+        self.slider_1 = None
+        self.streaming = None
+        self.video = None
+        self.webcam_display = None
         self.height_ratio = None
         self.width_ratio = None
         self.img_downscaled = None
@@ -73,7 +80,7 @@ class App(customtkinter.CTk):
         self.load_button.grid(row=1, column=0, padx=20, pady=10)
 
         self.camera_button = customtkinter.CTkButton(self.sidebar_frame, text="Camera",
-                                                     command=self.sidebar_button_event)
+                                                     command=self.display_webcam)
         self.camera_button.grid(row=2, column=0, padx=20, pady=10)
 
         self.appearance_mode_label = customtkinter.CTkLabel(self.sidebar_frame, text="Appearance Mode:", anchor="w")
@@ -113,11 +120,6 @@ class App(customtkinter.CTk):
         self.stage_buttons = customtkinter.CTkSegmentedButton(self.stage_frame)
         self.stage_buttons.grid(row=0, column=0, padx=40, pady=(10, 10), sticky="nsew")
 
-        # TODO: Add and remove these when necessary
-        # Preset will be needed with some labels in the case of the webcam and in paragraph detection
-        # self.slider_1 = customtkinter.CTkSlider(self.slider_frame, from_=0, to=255, number_of_steps=255)
-        # self.slider_1.grid(row=3, column=0, padx=(20, 10), pady=(10, 10), sticky="ew")
-
         # TODO: Bottom bar will be use to print on it the pictures of the process
         # create main entry and button
         self.developer_logs_button = customtkinter.CTkButton(self, text="Developer Logs",
@@ -134,6 +136,108 @@ class App(customtkinter.CTk):
 
         # TODO: Config will depend on whether we are on camera or load image version
         self.stage_buttons.configure(values=["Crop", "Warp", "Paragraph"], state=DISABLED)
+
+    # ///////////////////////////////// WEBCAM EXECUTION /////////////////////////////////
+
+    # TODO: Enhance UI to be able to apply thresholds through a set of sliders
+    def display_webcam(self):
+
+        self.clear_frame()
+
+        self.video = cv2.VideoCapture(0)
+
+        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 720)
+        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 1280)
+
+        # Set double threshold bars with their specific labels
+        self.slider_1 = customtkinter.CTkSlider(self.slider_frame, from_=0, to=255, number_of_steps=255)
+        self.slider_1.grid(row=1, column=0, padx=(20, 10), pady=(5, 10), sticky="ew")
+
+        self.thres_1_label = customtkinter.CTkLabel(self.slider_frame,
+                                                    text=f"Threshold 1: {self.slider_1.get()}",
+                                                    fg_color="transparent",
+                                                    corner_radius=10)
+        self.thres_1_label.grid(column=0, row=0, padx=10, pady=10, sticky="NSEW")
+
+        self.slider_2 = customtkinter.CTkSlider(self.slider_frame, from_=0, to=255, number_of_steps=255)
+        self.slider_2.grid(row=3, column=0, padx=(20, 10), pady=(5, 10), sticky="ew")
+
+        self.thres_2_label = customtkinter.CTkLabel(self.slider_frame,
+                                                    text=f"Threshold 2: {self.slider_2.get()}",
+                                                    fg_color="transparent",
+                                                    corner_radius=10)
+        self.thres_2_label.grid(column=0, row=2, padx=10, pady=10, sticky="NSEW")
+
+        # Set default values for the sliders
+        self.slider_1.set(10)
+        self.slider_2.set(80)
+
+        # Set elements for the webcam
+        self.webcam_display = customtkinter.CTkLabel(self.display_frame, text="", fg_color="transparent",
+                                                     corner_radius=10)
+        self.webcam_display.grid(column=0, row=0, padx=10, pady=10, sticky="NSEW")
+
+        btn_next = customtkinter.CTkButton(self.next_button_frame, width=self.next_button_frame.winfo_width() - 20,
+                                           text="Next",
+                                           command=lambda: self.stop_stream())
+        btn_next.grid(column=1, row=0, columnspan=3, padx=(10, 10), pady=(10, 10), sticky="NSEW")
+
+        self.start_stream()
+
+    def start_stream(self):
+        self.streaming = True
+
+        res_width = int(self.video.get(cv2.CAP_PROP_FRAME_WIDTH))
+        res_height = int(self.video.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+        print("Resolution: {} x {}".format(res_width, res_height))
+
+        self.stream()
+
+    def stop_stream(self):
+        self.streaming = False
+
+    # TODO: Extract elements as a class
+    def stream(self):
+        ret, frame = self.video.read()
+
+        if ret:
+            image_height = self.display_frame.winfo_height() - 20
+            frame_downscaled = imutils.resize(frame, height=image_height)
+
+            # Both copies of the frame are processed in order to get the actual high-res one
+            frame_corrected = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame_downscaled = cv2.cvtColor(frame_downscaled, cv2.COLOR_BGR2RGB)
+
+            self.thres_1_label.configure(text=f"Threshold 1: {self.slider_1.get()}")
+            self.thres_2_label.configure(text=f"Threshold 2: {self.slider_2.get()}")
+
+            img_vertices, default = ipp.detect_document_vertices(frame_downscaled, self.slider_1.get(),
+                                                                 self.slider_2.get())
+            boxed_img = ipp.draw_image_contour(img_vertices, frame_downscaled)
+
+            if not default:
+                img = Image.fromarray(boxed_img)
+            else:
+                img = Image.fromarray(frame_downscaled)
+
+            display_img = ImageTk.PhotoImage(image=img)
+
+            self.webcam_display.configure(image=display_img)
+            self.webcam_display.image = display_img
+
+        if self.streaming:
+            self.webcam_display.after(10, self.stream)
+        else:
+            self.clear_frame()
+
+            self.img = frame_corrected
+
+            self.display_image(False)
+
+    # ////////////////////////////////////////////////////////////////////////////////////
+
+    # ///////////////////////////////// COMMON PATH EXECUTION /////////////////////////////////
 
     def display_image(self, load_from_filesystem):
         if load_from_filesystem:
@@ -254,6 +358,8 @@ class App(customtkinter.CTk):
 
         # Everytime That an image load is needed
         self.display_frame.mainloop()
+
+    # /////////////////////////////////////////////////////////////////////////////////////////
 
     # TODO: Make this function show the developer stage pictures
     def show_dev(self):

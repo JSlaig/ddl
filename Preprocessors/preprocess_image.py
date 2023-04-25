@@ -8,10 +8,6 @@ from Utils import utlis
 def get_edges(img, threshold_1=10, threshold_2=80, flag_dev=False):
     img_blur = cv2.GaussianBlur(img, (5, 5), 1)  # ADD GAUSSIAN BLUR
 
-    # TODO: make these work as params
-    # Thresholds will be calculated automatically, since I need to find the sweetspot
-    # to make it detect the edges correctly, currently it works from values from
-    # 200 to 255.
     img_threshold = cv2.Canny(img_blur, threshold_1, threshold_2)  # APPLY CANNY BLUR
 
     kernel = np.ones((5, 5))
@@ -70,7 +66,7 @@ def draw_image_contour(biggest, img):
     return drawn_img
 
 
-def detect_document_vertices(img):
+def detect_document_vertices(img, t1=10, t2=80):
     # Flag used in the webcam mode to see if the prediction is default
     # or a real one indeed
     flag_default = False
@@ -82,7 +78,7 @@ def detect_document_vertices(img):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # Secondly, we run edge detector through the image
-    img = get_edges(img)
+    img = get_edges(img, t1, t2)
 
     # Thirdly, we have to find the contours present in the picture
     img, contours = get_contours(img, img_copy)
