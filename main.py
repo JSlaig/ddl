@@ -67,7 +67,8 @@ class App(customtkinter.CTk):
                                                  font=customtkinter.CTkFont(size=20, weight="bold"))
         self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
 
-        self.load_button = customtkinter.CTkButton(self.sidebar_frame, text="Load", command=lambda: self.display_image(True))
+        self.load_button = customtkinter.CTkButton(self.sidebar_frame, text="Load",
+                                                   command=lambda: self.display_image(True))
         self.load_button.grid(row=1, column=0, padx=20, pady=10)
 
         self.camera_button = customtkinter.CTkButton(self.sidebar_frame, text="Camera",
@@ -93,15 +94,24 @@ class App(customtkinter.CTk):
 
         # TODO: Add in this frame when neccesary
         # Frame for future sliders
-        self.slider_frame = customtkinter.CTkFrame(self)
-        self.slider_frame.grid(row=1, column=3, padx=(20, 20), pady=(20, 0), sticky="nsew")
+        self.r_sidebar_frame = customtkinter.CTkFrame(self)
+        self.r_sidebar_frame.grid(row=1, column=3, padx=(20, 20), pady=(20, 0), sticky="nsew")
+
+        self.r_sidebar_frame.grid_rowconfigure(0, weight=10)
+        self.r_sidebar_frame.grid_rowconfigure(1, weight=1)
+
+        self.param_frame = customtkinter.CTkFrame(self.r_sidebar_frame)
+        self.param_frame.grid(row=0, column=0, padx=(20, 20), pady=(10, 10), sticky="new")
+
+        self.next_button_frame = customtkinter.CTkFrame(self.r_sidebar_frame)
+        self.next_button_frame.grid(row=1, column=0, padx=(20, 20), pady=(20, 0), sticky="sew")
 
         # TODO: Modify in order to be able to swap through stages?
-        self.stage_buttons = customtkinter.CTkSegmentedButton(self.slider_frame)
+        self.stage_buttons = customtkinter.CTkSegmentedButton(self.param_frame)
         self.stage_buttons.grid(row=0, column=0, padx=(20, 10), pady=(10, 10), sticky="ew")
 
         # TODO: Add and remove these when necessary
-        self.slider_1 = customtkinter.CTkSlider(self.slider_frame, from_=0, to=255, number_of_steps=255)
+        self.slider_1 = customtkinter.CTkSlider(self.param_frame, from_=0, to=255, number_of_steps=255)
         self.slider_1.grid(row=3, column=0, padx=(20, 10), pady=(10, 10), sticky="ew")
 
         # TODO: Bottom bar will be use to print on it the pictures of the process
@@ -130,8 +140,9 @@ class App(customtkinter.CTk):
         # Needs to be changed in order to be outputted as np array
         self.points, default = ipp.detect_document_vertices(self.img)
 
-        image_height = int(85 * self.display_frame.winfo_height() / 100)
-        self.img_downscaled = imutils.resize(self.img, height=image_height)
+        preview_height = self.display_frame.winfo_height() - 20
+
+        self.img_downscaled = imutils.resize(self.img, height=preview_height)
 
         # Translate to tkinter
         img_preview = Image.fromarray(self.img)
@@ -140,14 +151,8 @@ class App(customtkinter.CTk):
         img_downscale_preview_TK = ImageTk.PhotoImage(image=img_downscale_preview)
 
         # Calculation of ratio between original and downsized picture
-        print(img_preview.width)
-        print(img_downscale_preview.width)
-
         self.width_ratio = img_preview.width / img_downscale_preview.width
         self.height_ratio = img_preview.height / img_downscale_preview.height
-
-        print(self.width_ratio)
-        print(self.height_ratio)
 
         # Calculate the position of the points in the downscaled image
         points_downscaled = self.downscale_points(self.points)
@@ -155,17 +160,19 @@ class App(customtkinter.CTk):
         # TODO: Might want to alter this to be class oriented as well
         self.clear_frame()
 
-        pad_x = int((self.display_frame.winfo_width() - img_downscale_preview.width) / 2)
+        pad_x = int((self.display_frame.winfo_width()) / 2)
+        pad_y = int((self.display_frame.winfo_height()) / 2)
+
         cropper = sp.ShapeCropper(self, self.display_frame, img_downscale_preview.width, img_downscale_preview.height,
                                   points_downscaled,
                                   img_downscale_preview_TK)
-        cropper.grid(column=0, row=0, padx=pad_x, pady=5, sticky="EW")
+        cropper.grid(column=0, row=0, padx=pad_x, pady=pad_y, sticky="EW")
 
-        # TODO: Change into customtkinterbuttons
-        btn_next = Button(self.display_frame, text="next", width=25,
-                          command=lambda: self.display_warped(cropper.get_tokens(), img_preview.width,
-                                                              img_preview.height))
-        btn_next.grid(column=1, row=2, padx=pad_x, pady=5, sticky="EW")
+        btn_next = customtkinter.CTkButton(self.next_button_frame, text="Next",
+                                           command=lambda: self.display_warped(cropper.get_tokens(),
+                                                                               img_preview.width,
+                                                                               img_preview.height))
+        btn_next.grid(column=1, row=0, columnspan=3, padx=(10, 10), pady=(10, 10), sticky="NSEW")
 
     # TODO: Make this function show the developer stage pictures
     def open_dev_image_dialog_event(self):
@@ -187,6 +194,11 @@ class App(customtkinter.CTk):
     # TODO: Must clear the frame with widgets for changing params as well
     def clear_frame(self):
         for child in self.display_frame.winfo_children():
+            child.destroy()
+
+        # Missing elements from upper frame in slider one
+
+        for child in self.next_button_frame.winfo_children():
             child.destroy()
 
     def load_image(self):

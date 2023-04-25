@@ -22,7 +22,7 @@ class ShapeCropper(tk.Frame):
         # create a canvas
         pad_x = int((parent.winfo_width() - self.width) / 2)
         self.canvas = tk.Canvas(parent, width=self.width, height=self.height, background="black")
-        self.canvas.grid(column=0, row=0, padx=pad_x, pady=5, sticky="EW")
+        self.canvas.grid(column=0, row=0, padx=pad_x, pady=(10, 10), sticky="EW")
 
         # Creation of the image in the canvas
         self.canvas.create_image(0, 0, image=self.image, anchor='nw', tags='image')
@@ -41,7 +41,7 @@ class ShapeCropper(tk.Frame):
         self.p3 = points[2][0]
         self.p4 = points[3][0]
 
-        self.create_tokens(self.p1, self.p2, self.p3, self.p4, "lightblue")
+        self.create_tokens(self.p1, self.p2, self.p3, self.p4, "#1f538d")
         self.draw_lines(self.p1, self.p2, self.p3, self.p4)
 
         self.z_img = None
@@ -98,10 +98,10 @@ class ShapeCropper(tk.Frame):
         )
 
     def draw_lines(self, p1, p2, p3, p4):
-        self.canvas.create_line(p1[0], p1[1], p2[0], p2[1], fill="lightblue", width=2, tags="line")
-        self.canvas.create_line(p2[0], p2[1], p3[0], p3[1], fill="lightblue", width=2, tags="line")
-        self.canvas.create_line(p3[0], p3[1], p4[0], p4[1], fill="lightblue", width=2, tags="line")
-        self.canvas.create_line(p4[0], p4[1], p1[0], p1[1], fill="lightblue", width=2, tags="line")
+        self.canvas.create_line(p1[0], p1[1], p2[0], p2[1], fill="#1f538d", width=2, tags="line")
+        self.canvas.create_line(p2[0], p2[1], p3[0], p3[1], fill="#1f538d", width=2, tags="line")
+        self.canvas.create_line(p3[0], p3[1], p4[0], p4[1], fill="#1f538d", width=2, tags="line")
+        self.canvas.create_line(p4[0], p4[1], p1[0], p1[1], fill="#1f538d", width=2, tags="line")
         self.canvas.tag_lower("line")
         self.canvas.tag_lower("image")
 
