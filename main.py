@@ -1,3 +1,4 @@
+import math
 import tkinter
 import tkinter.messagebox
 import customtkinter
@@ -92,8 +93,7 @@ class App(customtkinter.CTk):
         self.display_frame = customtkinter.CTkFrame(self)
         self.display_frame.grid(row=0, column=1, rowspan=2, columnspan=2, padx=(20, 0), pady=(20, 0), sticky="nsew")
 
-        # TODO: Add in this frame when neccesary
-        # Frame for future sliders
+        # Frame for thresholds and buttons
         self.r_sidebar_frame = customtkinter.CTkFrame(self)
         self.r_sidebar_frame.grid(row=0, column=3, rowspan=2, padx=(20, 20), pady=(20, 0), sticky="nsew")
 
@@ -104,25 +104,24 @@ class App(customtkinter.CTk):
         self.stage_frame = customtkinter.CTkFrame(self.r_sidebar_frame)
         self.stage_frame.grid(row=0, column=0, rowspan=1, padx=(20, 20), pady=(10, 10), sticky="new")
 
-        self.slider_frame = customtkinter.CTkFrame(self.r_sidebar_frame, height=20)
+        self.slider_frame = customtkinter.CTkFrame(self.r_sidebar_frame, height=350)
         self.slider_frame.grid(row=1, column=0, rowspan=1, padx=(20, 20), pady=(10, 10), sticky="ew")
 
         self.next_button_frame = customtkinter.CTkFrame(self.r_sidebar_frame, height=48)
         self.next_button_frame.grid(row=2, column=0, rowspan=1, padx=(20, 20), pady=(10, 10), sticky="sew")
 
-        # TODO: Modify in order to be able to swap through stages?
         self.stage_buttons = customtkinter.CTkSegmentedButton(self.stage_frame)
         self.stage_buttons.grid(row=0, column=0, padx=40, pady=(10, 10), sticky="nsew")
 
         # TODO: Add and remove these when necessary
         # Preset will be needed with some labels in the case of the webcam and in paragraph detection
-        self.slider_1 = customtkinter.CTkSlider(self.slider_frame, from_=0, to=255, number_of_steps=255)
-        self.slider_1.grid(row=3, column=0, padx=(20, 10), pady=(10, 10), sticky="ew")
+        # self.slider_1 = customtkinter.CTkSlider(self.slider_frame, from_=0, to=255, number_of_steps=255)
+        # self.slider_1.grid(row=3, column=0, padx=(20, 10), pady=(10, 10), sticky="ew")
 
         # TODO: Bottom bar will be use to print on it the pictures of the process
         # create main entry and button
         self.developer_logs_button = customtkinter.CTkButton(self, text="Developer Logs",
-                                                             command=self.open_dev_image_dialog_event)
+                                                             command=self.show_dev)
         self.developer_logs_button.grid(row=3, column=1, columnspan=2, padx=(20, 0), pady=(20, 20), sticky="nsew")
 
         # TODO: Set dev mode flag on function here
@@ -172,7 +171,8 @@ class App(customtkinter.CTk):
                                   img_downscale_preview_TK)
         cropper.grid(column=0, row=0, padx=pad_x, pady=pad_y, sticky="EW")
 
-        btn_next = customtkinter.CTkButton(self.next_button_frame, text="Next",
+        btn_next = customtkinter.CTkButton(self.next_button_frame, width=self.next_button_frame.winfo_width() - 20,
+                                           text="Next",
                                            command=lambda: self.display_warped(cropper.get_tokens(),
                                                                                img_preview.width,
                                                                                img_preview.height))
@@ -180,31 +180,66 @@ class App(customtkinter.CTk):
 
         self.stage_buttons.set("Crop")
 
+    def display_warped(self, tokens, img_width, img_height):
+        # Get cropped coordinates
+        new_downscaled_points = tokens
+
+        self.points = self.upscale_points(new_downscaled_points)
+
+        # TODO: change this to be a new class that displays the warped image
+        # Remove elements then put new in
+        self.clear_frame()
+
+        # This is the warped image over which we will operate
+        warped_image = ipp.img_warp(self.points, self.img, img_width, img_height)
+
+        aspect_ratio = 1 / math.sqrt(2)
+
+        a4_height = Image.fromarray(warped_image).height
+        a4_width = int(a4_height * aspect_ratio)
+
+        # This is the image over which we need to do stuff later
+        warped_image = cv2.resize(warped_image, (a4_width, a4_height))
+
+        image_height = self.display_frame.winfo_height() - 20
+
+        warped_downscaled = imutils.resize(warped_image, height=image_height)
+
+        warped_preview = Image.fromarray(warped_downscaled)
+        warped_preview_TK = ImageTk.PhotoImage(image=warped_preview)
+
+        warp_label = Label(self.display_frame, image=warped_preview_TK)
+
+        pad_x = int((self.display_frame.winfo_width()) / 2)
+        pad_y = int((self.display_frame.winfo_height()) / 2)
+
+        warp_label.grid(column=0, row=0, padx=pad_x, pady=pad_y)
+
+        btn_next = customtkinter.CTkButton(self.next_button_frame, width=self.next_button_frame.winfo_width() - 20, text="next",
+                                           command=lambda: self.display_paragraph_segmented(warped_image))
+
+        btn_next.grid(column=1, row=0, columnspan=3, padx=(10, 10), pady=(10, 10), sticky="NSEW")
+
+        self.stage_buttons.set("Warp")
+
+        # Everytime That an image load is needed
+        # root.mainloop()
+
     # TODO: Make this function show the developer stage pictures
-    def open_dev_image_dialog_event(self):
+    def show_dev(self):
         dialog = customtkinter.CTkInputDialog(text="Type in a number:", title="CTkInputDialog")
         print("CTkInputDialog:", dialog.get_input())
-
-    @staticmethod
-    def change_appearance_mode_event(new_appearance_mode: str):
-        customtkinter.set_appearance_mode(new_appearance_mode)
-
-    @staticmethod
-    def change_scaling_event(new_scaling: str):
-        new_scaling_float = int(new_scaling.replace("%", "")) / 100
-        customtkinter.set_widget_scaling(new_scaling_float)
 
     def sidebar_button_event(self):
         print("sidebar_button click")
 
     # ///////////////////////////////// AUXILIARY /////////////////////////////////
-
-    # TODO: Must clear the frame with widgets for changing params as well
     def clear_frame(self):
         for child in self.display_frame.winfo_children():
             child.destroy()
 
-        # Missing elements from upper frame in slider one
+        for child in self.slider_frame.winfo_children():
+            child.destroy()
 
         for child in self.next_button_frame.winfo_children():
             child.destroy()
@@ -253,6 +288,15 @@ class App(customtkinter.CTk):
         points[3][1] = points[3][1] * self.height_ratio
 
         return points
+
+    @staticmethod
+    def change_appearance_mode_event(new_appearance_mode: str):
+        customtkinter.set_appearance_mode(new_appearance_mode)
+
+    @staticmethod
+    def change_scaling_event(new_scaling: str):
+        new_scaling_float = int(new_scaling.replace("%", "")) / 100
+        customtkinter.set_widget_scaling(new_scaling_float)
 
 
 if __name__ == "__main__":
