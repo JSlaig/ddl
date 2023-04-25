@@ -130,7 +130,7 @@ class App(customtkinter.CTk):
 
         # TODO: Config will depend on whether we are on camera or load image version
         self.stage_buttons.configure(values=["Image Adjustment", "Image Crop Preview", "Paragraph Adjustment"])
-        self.stage_buttons.set("Image Adjusting")
+        self.stage_buttons.set("Image Adjustment")
 
     def display_image(self, load_from_filesystem):
         if load_from_filesystem:
