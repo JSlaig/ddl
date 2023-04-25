@@ -139,6 +139,8 @@ class App(customtkinter.CTk):
         if load_from_filesystem:
             self.load_image()
 
+        self.stage_buttons.set("Crop")
+
         # Get the original vertices
         # Needs to be changed in order to be outputted as np array
         self.points, default = ipp.detect_document_vertices(self.img)
@@ -178,17 +180,16 @@ class App(customtkinter.CTk):
                                                                                img_preview.height))
         btn_next.grid(column=1, row=0, columnspan=3, padx=(10, 10), pady=(10, 10), sticky="NSEW")
 
-        self.stage_buttons.set("Crop")
-
     def display_warped(self, tokens, img_width, img_height):
+
+        self.clear_frame()
+
+        self.stage_buttons.set("Warp")
+
         # Get cropped coordinates
         new_downscaled_points = tokens
 
         self.points = self.upscale_points(new_downscaled_points)
-
-        # TODO: change this to be a new class that displays the warped image
-        # Remove elements then put new in
-        self.clear_frame()
 
         # This is the warped image over which we will operate
         warped_image = ipp.img_warp(self.points, self.img, img_width, img_height)
@@ -208,22 +209,51 @@ class App(customtkinter.CTk):
         warped_preview = Image.fromarray(warped_downscaled)
         warped_preview_TK = ImageTk.PhotoImage(image=warped_preview)
 
+        pad_x = int((self.display_frame.winfo_width() - warped_preview.width) / 2)
+        pad_y = 10
+
         warp_label = Label(self.display_frame, image=warped_preview_TK)
-
-        pad_x = int((self.display_frame.winfo_width()) / 2)
-        pad_y = int((self.display_frame.winfo_height()) / 2)
-
         warp_label.grid(column=0, row=0, padx=pad_x, pady=pad_y)
 
-        btn_next = customtkinter.CTkButton(self.next_button_frame, width=self.next_button_frame.winfo_width() - 20, text="next",
+        btn_next = customtkinter.CTkButton(self.next_button_frame, width=self.next_button_frame.winfo_width() - 20,
+                                           text="Next",
                                            command=lambda: self.display_paragraph_segmented(warped_image))
 
         btn_next.grid(column=1, row=0, columnspan=3, padx=(10, 10), pady=(10, 10), sticky="NSEW")
 
-        self.stage_buttons.set("Warp")
-
         # Everytime That an image load is needed
         self.stage_frame.mainloop()
+
+    def display_paragraph_segmented(self, sheet):
+        self.clear_frame()
+
+        self.stage_buttons.set("Paragraph")
+
+        segmented_sheet, paragraphs = ppd.get_paragraph(sheet)
+
+        # TODO: I need to display this live with the changes made from two sliders in order to find proper
+        #   paragraph detection.
+
+        image_height = self.display_frame.winfo_height() - 20
+
+        segmented_sheet_downscaled = imutils.resize(segmented_sheet, height=image_height)
+
+        segmented_sheet_downscaled_preview = Image.fromarray(segmented_sheet_downscaled)
+        segmented_sheet_downscaled_preview_TK = ImageTk.PhotoImage(image=segmented_sheet_downscaled_preview)
+
+        segmented_label = Label(self.display_frame, image=segmented_sheet_downscaled_preview_TK)
+        pad_x = int((self.display_frame.winfo_width() - segmented_sheet_downscaled_preview.width) / 2)
+
+        segmented_label.grid(column=0, row=0, padx=pad_x, pady=5)
+
+        btn_next = customtkinter.CTkButton(self.next_button_frame, width=self.next_button_frame.winfo_width() - 20,
+                                           text="Next",
+                                           command=lambda: utlis.nothing('yes'))
+
+        btn_next.grid(column=1, row=0, columnspan=3, padx=(10, 10), pady=(10, 10), sticky="NSEW")
+
+        # Everytime That an image load is needed
+        self.display_frame.mainloop()
 
     # TODO: Make this function show the developer stage pictures
     def show_dev(self):
