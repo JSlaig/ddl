@@ -223,7 +223,7 @@ class App(customtkinter.CTk):
         self.stage_buttons.set("Warp")
 
         # Everytime That an image load is needed
-        # root.mainloop()
+        self.stage_frame.mainloop()
 
     # TODO: Make this function show the developer stage pictures
     def show_dev(self):
