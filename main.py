@@ -97,14 +97,14 @@ class App(customtkinter.CTk):
         self.r_sidebar_frame = customtkinter.CTkFrame(self)
         self.r_sidebar_frame.grid(row=1, column=3, padx=(20, 20), pady=(20, 0), sticky="nsew")
 
-        self.r_sidebar_frame.grid_rowconfigure(0, weight=10)
-        self.r_sidebar_frame.grid_rowconfigure(1, weight=1)
-
         self.param_frame = customtkinter.CTkFrame(self.r_sidebar_frame)
         self.param_frame.grid(row=0, column=0, padx=(20, 20), pady=(10, 10), sticky="new")
 
+        self.r_sidebar_frame.grid_rowconfigure(0, weight=10)
+        self.r_sidebar_frame.grid_rowconfigure(1, weight=1)
+
         self.next_button_frame = customtkinter.CTkFrame(self.r_sidebar_frame)
-        self.next_button_frame.grid(row=1, column=0, padx=(20, 20), pady=(20, 0), sticky="sew")
+        self.next_button_frame.grid(row=1, column=0, padx=(20, 20), pady=(10, 10), sticky="sew")
 
         # TODO: Modify in order to be able to swap through stages?
         self.stage_buttons = customtkinter.CTkSegmentedButton(self.param_frame)
