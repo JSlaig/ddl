@@ -41,6 +41,10 @@ class App(customtkinter.CTk):
         super().__init__()
 
         # Globals
+        self.paragraph_label = None
+        self.paragraph_slider = None
+        self.segmented_label = None
+        self.image_height = None
         self.thres_2_label = None
         self.thres_1_label = None
         self.slider_2 = None
@@ -139,6 +143,19 @@ class App(customtkinter.CTk):
 
     # ///////////////////////////////// WEBCAM EXECUTION /////////////////////////////////
 
+    def start_stream(self):
+        self.streaming = True
+
+        res_width = int(self.video.get(cv2.CAP_PROP_FRAME_WIDTH))
+        res_height = int(self.video.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+        print("Resolution: {} x {}".format(res_width, res_height))
+
+        self.stream()
+
+    def stop_stream(self):
+        self.streaming = False
+
     # TODO: Enhance UI to be able to apply thresholds through a set of sliders
     def display_webcam(self):
 
@@ -185,19 +202,6 @@ class App(customtkinter.CTk):
         btn_next.grid(column=1, row=0, columnspan=3, padx=(10, 10), pady=(10, 10), sticky="NSEW")
 
         self.start_stream()
-
-    def start_stream(self):
-        self.streaming = True
-
-        res_width = int(self.video.get(cv2.CAP_PROP_FRAME_WIDTH))
-        res_height = int(self.video.get(cv2.CAP_PROP_FRAME_HEIGHT))
-
-        print("Resolution: {} x {}".format(res_width, res_height))
-
-        self.stream()
-
-    def stop_stream(self):
-        self.streaming = False
 
     # TODO: Extract elements as a class
     def stream(self):
@@ -308,9 +312,9 @@ class App(customtkinter.CTk):
         # This is the image over which we need to do stuff later
         warped_image = cv2.resize(warped_image, (a4_width, a4_height))
 
-        image_height = self.display_frame.winfo_height() - 20
+        self.image_height = self.display_frame.winfo_height() - 20
 
-        warped_downscaled = imutils.resize(warped_image, height=image_height)
+        warped_downscaled = imutils.resize(warped_image, height=self.image_height)
 
         warped_preview = Image.fromarray(warped_downscaled)
         warped_preview_TK = ImageTk.PhotoImage(image=warped_preview)
@@ -337,28 +341,65 @@ class App(customtkinter.CTk):
 
         self.stage_buttons.set("Paragraph")
 
-        segmented_sheet, paragraphs = ppd.get_paragraph(sheet)
+        downscaled_sheet = imutils.resize(sheet, height=self.image_height)
+        downscaled_sheet_preview = Image.fromarray(downscaled_sheet)
+        downscaled_sheet_Tk = ImageTk.PhotoImage(downscaled_sheet_preview)
 
-        image_height = self.display_frame.winfo_height() - 20
+        pad_x = int((self.display_frame.winfo_width() - downscaled_sheet_preview.width) / 2)
 
-        segmented_sheet_downscaled = imutils.resize(segmented_sheet, height=image_height)
+        self.segmented_label = Label(self.display_frame, bg="black", image=downscaled_sheet_Tk)
+        self.segmented_label.grid(column=0, row=0, padx=pad_x, pady=5)
 
-        segmented_sheet_downscaled_preview = Image.fromarray(segmented_sheet_downscaled)
-        segmented_sheet_downscaled_preview_TK = ImageTk.PhotoImage(image=segmented_sheet_downscaled_preview)
+        # Set slider for paragraph size
+        self.paragraph_slider = customtkinter.CTkSlider(self.slider_frame, from_=1, to=40, number_of_steps=39)
+        self.paragraph_slider.grid(row=1, column=0, padx=(20, 10), pady=(5, 10), sticky="ew")
 
-        pad_x = int((self.display_frame.winfo_width() - segmented_sheet_downscaled_preview.width) / 2)
+        self.paragraph_slider.set(8)
 
-        segmented_label = Label(self.display_frame, bg="black", image=segmented_sheet_downscaled_preview_TK)
-        segmented_label.grid(column=0, row=0, padx=pad_x, pady=5)
+        self.paragraph_label = customtkinter.CTkLabel(self.slider_frame,
+                                                      text=f"Paragraph size: {self.paragraph_slider.get()}",
+                                                      fg_color="transparent",
+                                                      corner_radius=10)
+        self.paragraph_label.grid(row=0, column=0, padx=10, pady=10, sticky="NSEW")
 
         btn_next = customtkinter.CTkButton(self.next_button_frame, width=self.next_button_frame.winfo_width() - 20,
                                            text="Next",
-                                           command=lambda: utlis.nothing('yes'))
+                                           command=self.stop_detecting_paragraph)
 
         btn_next.grid(column=1, row=0, columnspan=3, padx=(10, 10), pady=(10, 10), sticky="NSEW")
 
+        self.start_detecting_paragraph(sheet)
+
         # Everytime That an image load is needed
         self.display_frame.mainloop()
+
+    def start_detecting_paragraph(self, sheet):
+        self.streaming = True
+
+        self.detect_paragraph(sheet)
+
+    def stop_detecting_paragraph(self):
+        self.streaming = False
+
+    def detect_paragraph(self, sheet):
+        while self.streaming:
+
+            self.paragraph_label.configure(text=f"Paragraph size: {self.paragraph_slider.get()}")
+
+            segmented_sheet, paragraphs = ppd.get_paragraph(sheet, self.paragraph_slider.get())
+            segmented_sheet_downscaled = imutils.resize(segmented_sheet, height=self.image_height)
+
+            segmented_sheet_downscaled_preview = Image.fromarray(segmented_sheet_downscaled)
+            segmented_sheet_downscaled_preview_TK = ImageTk.PhotoImage(image=segmented_sheet_downscaled_preview)
+
+            self.segmented_label.configure(image=segmented_sheet_downscaled_preview_TK)
+            self.segmented_label.image = segmented_sheet_downscaled_preview_TK
+
+            self.display_frame.update()
+
+        self.clear_frame()
+
+        # TODO: Call function that crops the paragraphs into a list and keeps doing stuff
 
     # /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -367,11 +408,9 @@ class App(customtkinter.CTk):
         dialog = customtkinter.CTkInputDialog(text="Type in a number:", title="CTkInputDialog")
         print("CTkInputDialog:", dialog.get_input())
 
-    def sidebar_button_event(self):
-        print("sidebar_button click")
-
     # ///////////////////////////////// AUXILIARY /////////////////////////////////
     def clear_frame(self):
+
         for child in self.display_frame.winfo_children():
             child.destroy()
 

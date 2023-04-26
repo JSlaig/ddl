@@ -3,7 +3,7 @@ import numpy as np
 import imutils
 
 
-def get_paragraph(sheet, flag_dev=False):
+def get_paragraph(sheet, size, flag_dev=False):
     sheet_copy = sheet.copy()
 
     sheet_gray = cv2.cvtColor(sheet_copy, cv2.COLOR_BGR2GRAY)
@@ -14,14 +14,12 @@ def get_paragraph(sheet, flag_dev=False):
     sheet_otsu = cv2.threshold(sheet_blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 
     # Create rectangular structuring element and dilate
-    # May need to have elements in the ui in order to modify for proper detection
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (8, 8))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (int(size), int(size)))
     sheet_dilated = cv2.dilate(sheet_otsu, kernel, iterations=4)
 
     sheet_bboxed, contours = draw_paragraph(sheet_dilated, sheet)
 
     # TODO: Manage with checkbox on UI
-    # flag_dev = True
     if flag_dev:
         sheet_gray_ds = imutils.resize(sheet_gray, height=600)
         sheet_blur_ds = imutils.resize(sheet_blur, height=600)
