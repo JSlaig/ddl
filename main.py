@@ -205,41 +205,42 @@ class App(customtkinter.CTk):
 
     # TODO: Extract elements as a class
     def stream(self):
-        ret, frame = self.video.read()
 
-        if ret:
-            image_height = self.display_frame.winfo_height() - 20
-            frame_downscaled = imutils.resize(frame, height=image_height)
+        while self.streaming:
+            ret, frame = self.video.read()
 
-            # Both copies of the frame are processed in order to get the actual high-res one
-            frame_corrected = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            frame_downscaled = cv2.cvtColor(frame_downscaled, cv2.COLOR_BGR2RGB)
+            if ret:
+                image_height = self.display_frame.winfo_height() - 20
+                frame_downscaled = imutils.resize(frame, height=image_height)
 
-            self.thres_1_label.configure(text=f"Threshold 1: {self.slider_1.get()}")
-            self.thres_2_label.configure(text=f"Threshold 2: {self.slider_2.get()}")
+                # Both copies of the frame are processed in order to get the actual high-res one
+                frame_corrected = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                frame_downscaled = cv2.cvtColor(frame_downscaled, cv2.COLOR_BGR2RGB)
 
-            img_vertices, default = ipp.detect_document_vertices(frame_downscaled, self.slider_1.get(),
-                                                                 self.slider_2.get())
-            boxed_img = ipp.draw_image_contour(img_vertices, frame_downscaled)
+                self.thres_1_label.configure(text=f"Threshold 1: {self.slider_1.get()}")
+                self.thres_2_label.configure(text=f"Threshold 2: {self.slider_2.get()}")
 
-            if not default:
-                img = Image.fromarray(boxed_img)
-            else:
-                img = Image.fromarray(frame_downscaled)
+                img_vertices, default = ipp.detect_document_vertices(frame_downscaled, self.slider_1.get(),
+                                                                     self.slider_2.get())
+                boxed_img = ipp.draw_image_contour(img_vertices, frame_downscaled)
 
-            display_img = ImageTk.PhotoImage(image=img)
+                if not default:
+                    img = Image.fromarray(boxed_img)
+                else:
+                    img = Image.fromarray(frame_downscaled)
 
-            self.webcam_display.configure(image=display_img)
-            self.webcam_display.image = display_img
+                display_img = ImageTk.PhotoImage(image=img)
 
-        if self.streaming:
-            self.webcam_display.after(10, self.stream)
-        else:
-            self.clear_frame()
+                self.webcam_display.configure(image=display_img)
+                self.webcam_display.image = display_img
 
-            self.img = frame_corrected
+                self.display_frame.update()
 
-            self.display_image(False)
+        self.clear_frame()
+
+        self.img = frame_corrected
+
+        self.display_image(False)
 
     # ////////////////////////////////////////////////////////////////////////////////////
 

@@ -47,6 +47,6 @@ def draw_paragraph(dilated_sheet, sheet):
 
     for c in contours:
         x, y, w, h = cv2.boundingRect(c)
-        cv2.rectangle(sheet_copy, (x, y), (x + w, y + h), (36, 255, 12), 2)
+        cv2.rectangle(sheet_copy, (x, y), (x + w, y + h), (1, 156, 255), 2)
 
     return sheet_copy, contours

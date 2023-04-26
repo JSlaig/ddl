@@ -66,13 +66,13 @@ def draw_rectangle(img, biggest, thickness):
 
     img_copy = img.copy()
 
-    cv2.line(img_copy, (biggest[0][0][0], biggest[0][0][1]), (biggest[1][0][0], biggest[1][0][1]), (173, 216, 230),
+    cv2.line(img_copy, (biggest[0][0][0], biggest[0][0][1]), (biggest[1][0][0], biggest[1][0][1]), (2, 156, 255),
              thickness)
-    cv2.line(img_copy, (biggest[0][0][0], biggest[0][0][1]), (biggest[2][0][0], biggest[2][0][1]), (173, 216, 230),
+    cv2.line(img_copy, (biggest[0][0][0], biggest[0][0][1]), (biggest[2][0][0], biggest[2][0][1]), (2, 156, 255),
              thickness)
-    cv2.line(img_copy, (biggest[3][0][0], biggest[3][0][1]), (biggest[2][0][0], biggest[2][0][1]), (173, 216, 230),
+    cv2.line(img_copy, (biggest[3][0][0], biggest[3][0][1]), (biggest[2][0][0], biggest[2][0][1]), (2, 156, 255),
              thickness)
-    cv2.line(img_copy, (biggest[3][0][0], biggest[3][0][1]), (biggest[1][0][0], biggest[1][0][1]), (173, 216, 230),
+    cv2.line(img_copy, (biggest[3][0][0], biggest[3][0][1]), (biggest[1][0][0], biggest[1][0][1]), (2, 156, 255),
              thickness)
 
     return img_copy
