@@ -1,6 +1,6 @@
 import math
-import tkinter
-import tkinter.messagebox
+import time
+
 import customtkinter
 
 from tkinter import *
@@ -15,7 +15,7 @@ from Preprocessors import preprocess_image as ipp
 from Preprocessors import preprocess_document as ppd
 
 from UI import shape_cropper as sp
-from Utils import utlis
+from UI import top_level_window as tlp
 
 from screeninfo import get_monitors
 
@@ -41,6 +41,7 @@ class App(customtkinter.CTk):
         super().__init__()
 
         # Globals
+        self.toplevel_window = None
         self.paragraph_label = None
         self.paragraph_slider = None
         self.segmented_label = None
@@ -57,6 +58,7 @@ class App(customtkinter.CTk):
         self.img_downscaled = None
         self.points = None
         self.img = None
+        self.dev_imgs = dict()
 
         # configure window        
         self.title("DDL")
@@ -126,7 +128,7 @@ class App(customtkinter.CTk):
 
         # create main entry and button
         self.developer_logs_button = customtkinter.CTkButton(self, text="Developer Panel",
-                                                             command=self.show_dev)
+                                                             command=lambda: self.show_dev())
         self.developer_logs_button.grid(row=3, column=1, columnspan=2, padx=(20, 0), pady=(20, 20), sticky="nsew")
 
         # TODO: Set dev mode flag on function here
@@ -417,8 +419,10 @@ class App(customtkinter.CTk):
 
     # TODO: Make this function show the developer stage pictures
     def show_dev(self):
-        dialog = customtkinter.CTkInputDialog(text="Type in a number:", title="CTkInputDialog")
-        print("CTkInputDialog:", dialog.get_input())
+        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+            self.toplevel_window = tlp.ToplevelWindow(self)
+        else:
+            self.toplevel_window.destroy()
 
     # ///////////////////////////////// AUXILIARY /////////////////////////////////
     def clear_frame(self):
