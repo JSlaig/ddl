@@ -5,7 +5,7 @@ import numpy as np
 from Utils import utlis
 
 
-def get_edges(img, threshold_1=10, threshold_2=80, flag_dev=False):
+def get_edges(img, dev_flag, threshold_1=10, threshold_2=80):
     img_blur = cv2.GaussianBlur(img, (5, 5), 1)  # ADD GAUSSIAN BLUR
 
     img_threshold = cv2.Canny(img_blur, threshold_1, threshold_2)  # APPLY CANNY BLUR
@@ -18,36 +18,22 @@ def get_edges(img, threshold_1=10, threshold_2=80, flag_dev=False):
 
     ret, img_otsu = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
+    dev = {}
+
     # TODO: Make this actually be triggered by checkbox in UI
-    if flag_dev:
-        # downscale each pic to be able to see them
-        img_blur_ds = imutils.resize(img_blur, height=400)
-        img_dilated_ds = imutils.resize(img_dilated, height=400)
-        img_eroded_ds = imutils.resize(img_eroded, height=400)
-        img_otsu_ds = imutils.resize(img_otsu, height=400)
+    if dev_flag != 0:
+        dev["Gaussian Blurred"] = img_blur
+        dev["Dilated"] = img_dilated
+        dev["Eroded"] = img_eroded
+        dev["Otsu"] = img_otsu
 
-        cv2.imshow("Gaussian Blurred", img_blur_ds)
-        cv2.imshow("Dilated", img_dilated_ds)
-        cv2.imshow("Eroded", img_eroded_ds)
-        cv2.imshow("Otsu", img_otsu_ds)
-
-        cv2.waitkey(0)
-
-    return img_otsu
+    return img_otsu, dev
 
 
-def get_contours(img, original, dev=False):
+def get_contours(img, original):
     contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # FIND ALL CONTOURS
 
     drawn_contours = cv2.drawContours(original, contours, -1, (0, 255, 0), 10)  # DRAW ALL DETECTED CONTOURS
-
-    # TODO: dependant on dev flag
-    if dev:
-        drawn_contours_ds = imutils.resize(drawn_contours, height=600)
-
-        cv2.imshow("Contoured img", drawn_contours_ds)
-
-        cv2.waitkey(0)
 
     return drawn_contours, contours
 
@@ -66,7 +52,7 @@ def draw_image_contour(biggest, img):
     return drawn_img
 
 
-def detect_document_vertices(img, t1=10, t2=80):
+def detect_document_vertices(img, dev_flag, t1=10, t2=80):
     # Flag used in the webcam mode to see if the prediction is default
     # or a real one indeed
     flag_default = False
@@ -78,10 +64,13 @@ def detect_document_vertices(img, t1=10, t2=80):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # Secondly, we run edge detector through the image
-    img = get_edges(img, t1, t2)
+    img, dev_imgs = get_edges(img, dev_flag, t1, t2)
 
     # Thirdly, we have to find the contours present in the picture
     img, contours = get_contours(img, img_copy)
+
+    if dev_flag != 0:
+        dev_imgs["Contoured image"] = img
 
     # Fourth step is to find the actual biggest contour and draw it on the image
     biggest = get_biggest_contour(contours)
@@ -97,7 +86,7 @@ def detect_document_vertices(img, t1=10, t2=80):
                             [int(width / 4), int(3 * height / 4)],
                             [int(3 * width / 4), int(3 * height / 4)]])
 
-    return biggest, flag_default
+    return biggest, flag_default, dev_imgs
 
 
 def img_warp(contour, img, width, height):

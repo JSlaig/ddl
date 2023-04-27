@@ -45,20 +45,26 @@ class App(customtkinter.CTk):
         self.paragraph_label = None
         self.paragraph_slider = None
         self.segmented_label = None
-        self.image_height = None
-        self.thres_2_label = None
-        self.thres_1_label = None
         self.slider_2 = None
         self.slider_1 = None
-        self.streaming = None
-        self.video = None
-        self.webcam_display = None
+
+        self.image_height = None
         self.height_ratio = None
         self.width_ratio = None
+
+        self.thres_2_label = None
+        self.thres_1_label = None
+
+        self.streaming = None
+        self.video = None
+
+        self.webcam_display = None
+
         self.img_downscaled = None
         self.points = None
         self.img = None
-        self.dev_imgs = dict()
+
+        self.dev_imgs = {}
 
         # configure window        
         self.title("DDL")
@@ -132,8 +138,8 @@ class App(customtkinter.CTk):
         self.developer_logs_button.grid(row=3, column=1, columnspan=2, padx=(20, 0), pady=(20, 20), sticky="nsew")
 
         # TODO: Set dev mode flag on function here
-        self.switch = customtkinter.CTkSwitch(master=self, text=f"Developer Mode")
-        self.switch.grid(row=3, column=3, padx=(20, 20), pady=(20, 20), sticky="nsew")
+        self.dev_switch = customtkinter.CTkSwitch(master=self, text=f"Developer Mode")
+        self.dev_switch.grid(row=3, column=3, padx=(20, 20), pady=(20, 20), sticky="nsew")
 
         # set default values
         self.appearance_mode_option_menu.set("Dark")
@@ -148,8 +154,6 @@ class App(customtkinter.CTk):
 
         res_width = int(self.video.get(cv2.CAP_PROP_FRAME_WIDTH))
         res_height = int(self.video.get(cv2.CAP_PROP_FRAME_HEIGHT))
-
-        print("Resolution: {} x {}".format(res_width, res_height))
 
         self.stream()
 
@@ -218,8 +222,14 @@ class App(customtkinter.CTk):
                 self.thres_1_label.configure(text=f"Threshold 1: {self.slider_1.get()}")
                 self.thres_2_label.configure(text=f"Threshold 2: {self.slider_2.get()}")
 
-                img_vertices, default = ipp.detect_document_vertices(frame_downscaled, self.slider_1.get(),
-                                                                     self.slider_2.get())
+                img_vertices, default, dev_imgs_list = ipp.detect_document_vertices(frame_downscaled,
+                                                                                    self.dev_switch.get(),
+                                                                                    self.slider_1.get(),
+                                                                                    self.slider_2.get())
+
+                for dev_title, dev_img in dev_imgs_list.items():
+                    self.dev_imgs[dev_title] = dev_img
+
                 boxed_img = ipp.draw_image_contour(img_vertices, frame_downscaled)
 
                 if not default:
@@ -252,7 +262,10 @@ class App(customtkinter.CTk):
 
         # Get the original vertices
         # Needs to be changed in order to be outputted as np array
-        self.points, default = ipp.detect_document_vertices(self.img)
+        self.points, default, dev_imgs_list = ipp.detect_document_vertices(self.img, self.dev_switch.get())
+
+        for dev_title, dev_img in dev_imgs_list.items():
+            self.dev_imgs[dev_title] = dev_img
 
         preview_height = self.display_frame.winfo_height() - 20
 
