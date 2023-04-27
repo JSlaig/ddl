@@ -188,6 +188,10 @@ class ShapeCropper(tk.Frame):
         self.crop(event)
 
     def crop(self, event):
+
+        if self.z_img_id:
+            self.canvas.delete(self.z_img_id)
+
         if self.z_cycle != 0:
 
             x, y = self._drag_data["x"], self._drag_data["y"]
