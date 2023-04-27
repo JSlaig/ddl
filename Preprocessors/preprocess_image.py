@@ -75,16 +75,24 @@ def detect_document_vertices(img, dev_flag, t1=10, t2=80):
     # Fourth step is to find the actual biggest contour and draw it on the image
     biggest = get_biggest_contour(contours)
 
+    biggest_aux = []
+
+    for big in biggest:
+        biggest_aux.append(big[0])
+
+    biggest = np.array(biggest_aux)
+
     # In case no contour is detected, we establish a default one
-    if biggest.size == 0:
+    if biggest.size < 8:
         flag_default = True
 
         height, width = img.shape[:2]
 
         # Set up the 4 points of the image based on the resolution of the picture, with an aspect ratio of 1:1.4
-        biggest = np.array([[int(width / 4), int(height / 4)], [int(3 * width / 4), int(height / 4)],
+        biggest = np.array([[int(width / 4), int(height / 4)],
                             [int(width / 4), int(3 * height / 4)],
-                            [int(3 * width / 4), int(3 * height / 4)]])
+                            [int(3 * width / 4), int(3 * height / 4)],
+                            [int(3 * width / 4), int(height / 4)]])
 
     return biggest, flag_default, dev_imgs
 

@@ -463,20 +463,18 @@ class App(customtkinter.CTk):
             self.img = cv2.cvtColor(img_file, cv2.COLOR_BGR2RGB)
 
     def downscale_points(self, points):
-        # TODO: Once the structure of the array is no longer double-bracketed
-        #   change the way they work from points[2][0][1] to points[2][1]
 
-        points[0][0][0] = points[0][0][0] / self.width_ratio
-        points[0][0][1] = points[0][0][1] / self.height_ratio
+        points[0][0] = points[0][0] / self.width_ratio
+        points[0][1] = points[0][1] / self.height_ratio
 
-        points[1][0][0] = points[1][0][0] / self.width_ratio
-        points[1][0][1] = points[1][0][1] / self.height_ratio
+        points[1][0] = points[1][0] / self.width_ratio
+        points[1][1] = points[1][1] / self.height_ratio
 
-        points[2][0][0] = points[2][0][0] / self.width_ratio
-        points[2][0][1] = points[2][0][1] / self.height_ratio
+        points[2][0] = points[2][0] / self.width_ratio
+        points[2][1] = points[2][1] / self.height_ratio
 
-        points[3][0][0] = points[3][0][0] / self.width_ratio
-        points[3][0][1] = points[3][0][1] / self.height_ratio
+        points[3][0] = points[3][0] / self.width_ratio
+        points[3][1] = points[3][1] / self.height_ratio
 
         return points
 

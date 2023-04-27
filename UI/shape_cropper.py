@@ -35,12 +35,10 @@ class ShapeCropper(tk.Frame):
         self.visible = False
 
         # Creation of the original points
-
-        # TODO: Change the way these points work once they arent double listed
-        self.p1 = points[0][0]
-        self.p2 = points[1][0]
-        self.p3 = points[2][0]
-        self.p4 = points[3][0]
+        self.p1 = points[0]
+        self.p2 = points[1]
+        self.p3 = points[2]
+        self.p4 = points[3]
 
         self.create_tokens(self.p1, self.p2, self.p3, self.p4, "#029cff")
         self.draw_lines(self.p1, self.p2, self.p3, self.p4)
