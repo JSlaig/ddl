@@ -88,11 +88,11 @@ class App(customtkinter.CTk):
         self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
 
         self.load_button = customtkinter.CTkButton(self.sidebar_frame, text="Load",
-                                                   command=lambda: self.display_image(True))
+                                                   command=lambda: self.image_display(True))
         self.load_button.grid(row=1, column=0, padx=20, pady=10)
 
         self.camera_button = customtkinter.CTkButton(self.sidebar_frame, text="Camera",
-                                                     command=self.display_webcam)
+                                                     command=self.webcam_display)
         self.camera_button.grid(row=2, column=0, padx=20, pady=10)
 
         self.appearance_mode_label = customtkinter.CTkLabel(self.sidebar_frame, text="Appearance Mode:", anchor="w")
@@ -134,7 +134,7 @@ class App(customtkinter.CTk):
 
         # create main entry and button
         self.developer_logs_button = customtkinter.CTkButton(self, text="Developer Panel",
-                                                             command=lambda: self.show_dev())
+                                                             command=lambda: self.dev_show())
         self.developer_logs_button.grid(row=3, column=1, columnspan=2, padx=(20, 0), pady=(20, 20), sticky="nsew")
 
         # TODO: Set dev mode flag on function here
@@ -149,64 +149,18 @@ class App(customtkinter.CTk):
 
     # ///////////////////////////////// WEBCAM EXECUTION /////////////////////////////////
 
-    def start_stream(self):
+    def webcam_start(self):
         self.streaming = True
 
         res_width = int(self.video.get(cv2.CAP_PROP_FRAME_WIDTH))
         res_height = int(self.video.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-        self.stream()
+        self.webcam_loop()
 
-    def stop_stream(self):
+    def webcam_stop(self):
         self.streaming = False
 
-    def display_webcam(self):
-
-        self.stage_buttons.set("")
-
-        self.clear_frame()
-
-        self.video = cv2.VideoCapture(0)
-
-        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 720)
-        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 1280)
-
-        # Set double threshold bars with their specific labels
-        self.slider_1 = customtkinter.CTkSlider(self.slider_frame, from_=0, to=255, number_of_steps=255)
-        self.slider_1.grid(row=1, column=0, padx=(20, 10), pady=(5, 10), sticky="ew")
-
-        self.thres_1_label = customtkinter.CTkLabel(self.slider_frame,
-                                                    text=f"Threshold 1: {self.slider_1.get()}",
-                                                    fg_color="transparent",
-                                                    corner_radius=10)
-        self.thres_1_label.grid(column=0, row=0, padx=10, pady=10, sticky="NSEW")
-
-        self.slider_2 = customtkinter.CTkSlider(self.slider_frame, from_=0, to=255, number_of_steps=255)
-        self.slider_2.grid(row=3, column=0, padx=(20, 10), pady=(5, 10), sticky="ew")
-
-        self.thres_2_label = customtkinter.CTkLabel(self.slider_frame,
-                                                    text=f"Threshold 2: {self.slider_2.get()}",
-                                                    fg_color="transparent",
-                                                    corner_radius=10)
-        self.thres_2_label.grid(column=0, row=2, padx=10, pady=10, sticky="NSEW")
-
-        # Set default values for the sliders
-        self.slider_1.set(10)
-        self.slider_2.set(80)
-
-        # Set elements for the webcam
-        self.webcam_display = customtkinter.CTkLabel(self.display_frame, text="", fg_color="transparent",
-                                                     corner_radius=10)
-        self.webcam_display.grid(column=0, row=0, padx=10, pady=10, sticky="NSEW")
-
-        btn_next = customtkinter.CTkButton(self.next_button_frame, width=self.next_button_frame.winfo_width() - 20,
-                                           text="Next",
-                                           command=lambda: self.stop_stream())
-        btn_next.grid(column=1, row=0, columnspan=3, padx=(10, 10), pady=(10, 10), sticky="NSEW")
-
-        self.start_stream()
-
-    def stream(self):
+    def webcam_loop(self):
 
         while self.streaming:
             ret, frame = self.video.read()
@@ -244,19 +198,65 @@ class App(customtkinter.CTk):
 
                 self.display_frame.update()
 
-        self.clear_frame()
+        self.frame_clear()
 
         self.img = frame_corrected
 
-        self.display_image(False)
+        self.image_display(False)
+
+    def webcam_display(self):
+
+        self.stage_buttons.set("")
+
+        self.frame_clear()
+
+        self.video = cv2.VideoCapture(0)
+
+        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 720)
+        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 1280)
+
+        # Set double threshold bars with their specific labels
+        self.slider_1 = customtkinter.CTkSlider(self.slider_frame, from_=0, to=255, number_of_steps=255)
+        self.slider_1.grid(row=1, column=0, padx=(20, 10), pady=(5, 10), sticky="ew")
+
+        self.thres_1_label = customtkinter.CTkLabel(self.slider_frame,
+                                                    text=f"Threshold 1: {self.slider_1.get()}",
+                                                    fg_color="transparent",
+                                                    corner_radius=10)
+        self.thres_1_label.grid(column=0, row=0, padx=10, pady=10, sticky="NSEW")
+
+        self.slider_2 = customtkinter.CTkSlider(self.slider_frame, from_=0, to=255, number_of_steps=255)
+        self.slider_2.grid(row=3, column=0, padx=(20, 10), pady=(5, 10), sticky="ew")
+
+        self.thres_2_label = customtkinter.CTkLabel(self.slider_frame,
+                                                    text=f"Threshold 2: {self.slider_2.get()}",
+                                                    fg_color="transparent",
+                                                    corner_radius=10)
+        self.thres_2_label.grid(column=0, row=2, padx=10, pady=10, sticky="NSEW")
+
+        # Set default values for the sliders
+        self.slider_1.set(10)
+        self.slider_2.set(80)
+
+        # Set elements for the webcam
+        self.webcam_display = customtkinter.CTkLabel(self.display_frame, text="", fg_color="transparent",
+                                                     corner_radius=10)
+        self.webcam_display.grid(column=0, row=0, padx=10, pady=10, sticky="NSEW")
+
+        btn_next = customtkinter.CTkButton(self.next_button_frame, width=self.next_button_frame.winfo_width() - 20,
+                                           text="Next",
+                                           command=lambda: self.webcam_stop())
+        btn_next.grid(column=1, row=0, columnspan=3, padx=(10, 10), pady=(10, 10), sticky="NSEW")
+
+        self.webcam_start()
 
     # ////////////////////////////////////////////////////////////////////////////////////
 
     # ///////////////////////////////// COMMON PATH EXECUTION /////////////////////////////////
 
-    def display_image(self, load_from_filesystem):
+    def image_display(self, load_from_filesystem):
         if load_from_filesystem:
-            self.load_image()
+            self.image_load()
 
         self.stage_buttons.set("Crop")
 
@@ -264,6 +264,7 @@ class App(customtkinter.CTk):
         # Needs to be changed in order to be outputted as np array
         self.points, default, dev_imgs_list = ipp.detect_document_vertices(self.img, self.dev_switch.get())
 
+        # Insert the dev images in the list to display
         for dev_title, dev_img in dev_imgs_list.items():
             self.dev_imgs[dev_title] = dev_img
 
@@ -284,7 +285,7 @@ class App(customtkinter.CTk):
         # Calculate the position of the points in the downscaled image
         points_downscaled = self.downscale_points(self.points)
 
-        self.clear_frame()
+        self.frame_clear()
 
         pad_x = int((self.display_frame.winfo_width()) / 2)
         pad_y = int((self.display_frame.winfo_height()) / 2)
@@ -296,14 +297,14 @@ class App(customtkinter.CTk):
 
         btn_next = customtkinter.CTkButton(self.next_button_frame, width=self.next_button_frame.winfo_width() - 20,
                                            text="Next",
-                                           command=lambda: self.display_warped(cropper.get_tokens(),
-                                                                               img_preview.width,
-                                                                               img_preview.height))
+                                           command=lambda: self.warp_display(cropper.get_tokens(),
+                                                                             img_preview.width,
+                                                                             img_preview.height))
         btn_next.grid(column=1, row=0, columnspan=3, padx=(10, 10), pady=(10, 10), sticky="NSEW")
 
-    def display_warped(self, tokens, img_width, img_height):
+    def warp_display(self, tokens, img_width, img_height):
 
-        self.clear_frame()
+        self.frame_clear()
 
         self.stage_buttons.set("Warp")
 
@@ -341,15 +342,15 @@ class App(customtkinter.CTk):
 
         btn_next = customtkinter.CTkButton(self.next_button_frame, width=self.next_button_frame.winfo_width() - 20,
                                            text="Next",
-                                           command=lambda: self.display_paragraph_segmented(warped_image))
+                                           command=lambda: self.paragraph_segmentation_display(warped_image))
 
         btn_next.grid(column=1, row=0, columnspan=3, padx=(10, 10), pady=(10, 10), sticky="NSEW")
 
         # Everytime That an image load is needed
         self.stage_frame.mainloop()
 
-    def display_paragraph_segmented(self, sheet):
-        self.clear_frame()
+    def paragraph_segmentation_display(self, sheet):
+        self.frame_clear()
 
         self.stage_buttons.set("Paragraph")
 
@@ -376,24 +377,24 @@ class App(customtkinter.CTk):
 
         btn_next = customtkinter.CTkButton(self.next_button_frame, width=self.next_button_frame.winfo_width() - 20,
                                            text="Next",
-                                           command=self.stop_detecting_paragraph)
+                                           command=self.paragraph_detection_stop)
 
         btn_next.grid(column=1, row=0, columnspan=3, padx=(10, 10), pady=(10, 10), sticky="NSEW")
 
-        self.start_detecting_paragraph(sheet)
+        self.paragraph_detection_start(sheet)
 
         # Everytime That an image load is needed
         self.display_frame.mainloop()
 
-    def start_detecting_paragraph(self, sheet):
+    def paragraph_detection_start(self, sheet):
         self.streaming = True
 
-        self.detect_paragraph(sheet)
+        self.paragraph_detection_loop(sheet)
 
-    def stop_detecting_paragraph(self):
+    def paragraph_detection_stop(self):
         self.streaming = False
 
-    def detect_paragraph(self, sheet):
+    def paragraph_detection_loop(self, sheet):
         while self.streaming:
             self.paragraph_label.configure(text=f"Paragraph size: {self.paragraph_slider.get()}")
 
@@ -408,13 +409,13 @@ class App(customtkinter.CTk):
 
             self.display_frame.update()
 
-        self.clear_frame()
+        self.frame_clear()
 
-        self.crop_paragraphs(paragraphs)
+        self.paragraph_crop(paragraphs)
 
         # TODO: Call function that crops the paragraphs into a list and keeps doing stuff
 
-    def crop_paragraphs(self, paragraphs_coords):
+    def paragraph_crop(self, paragraphs_coords):
 
         paragraphs = []
 
@@ -430,7 +431,7 @@ class App(customtkinter.CTk):
     # /////////////////////////////////////////////////////////////////////////////////////////
 
     # TODO: Make this function show the developer stage pictures
-    def show_dev(self):
+    def dev_show(self):
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
             self.toplevel_window = tlp.ToplevelWindow(self)
             self.toplevel_window.init_tabs(self.dev_imgs)
@@ -438,7 +439,7 @@ class App(customtkinter.CTk):
             self.toplevel_window.destroy()
 
     # ///////////////////////////////// AUXILIARY /////////////////////////////////
-    def clear_frame(self):
+    def frame_clear(self):
 
         for child in self.display_frame.winfo_children():
             child.destroy()
@@ -449,7 +450,7 @@ class App(customtkinter.CTk):
         for child in self.next_button_frame.winfo_children():
             child.destroy()
 
-    def load_image(self):
+    def image_load(self):
         path = filedialog.askopenfilename(filetypes=[("image", ".jpg"),
                                                      ("image", ".jpeg"),
                                                      ("image", ".png")])
