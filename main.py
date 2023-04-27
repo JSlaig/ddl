@@ -411,7 +411,6 @@ class App(customtkinter.CTk):
             paragraphs.append(paragraph)
 
         for i, p in enumerate(paragraphs):
-
             new_height = int(50 * Image.fromarray(p).height / 100)
             cv2.imshow(f"Paragraph {i}", imutils.resize(p, height=new_height))
 
@@ -421,6 +420,7 @@ class App(customtkinter.CTk):
     def show_dev(self):
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
             self.toplevel_window = tlp.ToplevelWindow(self)
+            self.toplevel_window.init_tabs(self.dev_imgs)
         else:
             self.toplevel_window.destroy()
 
