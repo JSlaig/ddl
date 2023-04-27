@@ -429,8 +429,6 @@ class App(customtkinter.CTk):
             cv2.imshow(f"Paragraph {i}", imutils.resize(p, height=new_height))
 
     # /////////////////////////////////////////////////////////////////////////////////////////
-
-    # TODO: Make this function show the developer stage pictures
     def dev_show(self):
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
             self.toplevel_window = tlp.ToplevelWindow(self)

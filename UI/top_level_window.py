@@ -39,7 +39,7 @@ class ToplevelWindow(customtkinter.CTkToplevel):
 
                 current_tab = tabview.tab(title)
 
-                image_label = customtkinter.CTkLabel(master=current_tab)
+                image_label = customtkinter.CTkLabel(master=current_tab, text="")
                 image_label.pack(padx=5, pady=5)
 
                 image_ds = imutils.resize(image, height=self.height)
