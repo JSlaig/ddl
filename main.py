@@ -58,8 +58,6 @@ class App(customtkinter.CTk):
         self.streaming = None
         self.video = None
 
-        self.webcam_display = None
-
         self.img_downscaled = None
         self.points = None
         self.img = None
@@ -92,7 +90,7 @@ class App(customtkinter.CTk):
         self.load_button.grid(row=1, column=0, padx=20, pady=10)
 
         self.camera_button = customtkinter.CTkButton(self.sidebar_frame, text="Camera",
-                                                     command=self.webcam_display)
+                                                     command=lambda: self.webcam_display())
         self.camera_button.grid(row=2, column=0, padx=20, pady=10)
 
         self.appearance_mode_label = customtkinter.CTkLabel(self.sidebar_frame, text="Appearance Mode:", anchor="w")
@@ -137,7 +135,6 @@ class App(customtkinter.CTk):
                                                              command=lambda: self.dev_show())
         self.developer_logs_button.grid(row=3, column=1, columnspan=2, padx=(20, 0), pady=(20, 20), sticky="nsew")
 
-        # TODO: Set dev mode flag on function here
         self.dev_switch = customtkinter.CTkSwitch(master=self, text=f"Developer Mode")
         self.dev_switch.grid(row=3, column=3, padx=(20, 20), pady=(20, 20), sticky="nsew")
 
@@ -151,9 +148,6 @@ class App(customtkinter.CTk):
 
     def webcam_start(self):
         self.streaming = True
-
-        res_width = int(self.video.get(cv2.CAP_PROP_FRAME_WIDTH))
-        res_height = int(self.video.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
         self.webcam_loop()
 
@@ -205,7 +199,6 @@ class App(customtkinter.CTk):
         self.image_display(False)
 
     def webcam_display(self):
-
         self.stage_buttons.set("")
 
         self.frame_clear()

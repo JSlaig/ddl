@@ -50,10 +50,11 @@ def biggest_contour(contours):
         # by avoiding areas smaller than the value specified, when the picture is way too
         # small, the if does not trigger and therefore a later error is triggered
         # TODO: Find sweet-spot for the area value
-        if area > 2000:
+
+        if 2000 < area:
             peri = cv2.arcLength(i, True)
 
-            approx = cv2.approxPolyDP(i, 0.0555 * peri, True)
+            approx = cv2.approxPolyDP(i, 0.05 * peri, True)
 
             if peri > max_peri and len(approx) == 4:
                 biggest = approx
