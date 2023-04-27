@@ -39,12 +39,15 @@ class ToplevelWindow(customtkinter.CTkToplevel):
 
                 current_tab = tabview.tab(title)
 
+                image_label = customtkinter.CTkLabel(master=current_tab)
+                image_label.pack(padx=5, pady=5)
+
                 image_ds = imutils.resize(image, height=self.height)
 
                 image_p = Image.fromarray(image_ds)
                 image_tk = ImageTk.PhotoImage(image=image_p)
 
-                image_label = Label(current_tab, bg="black", image=image_tk)
-                image_label.pack(padx=5, pady=5)
+                image_label.configure(image=image_tk)
+                image_label.update()
 
             tabview.set(next(iter(images)))
