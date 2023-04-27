@@ -124,9 +124,8 @@ class App(customtkinter.CTk):
         self.stage_buttons = customtkinter.CTkSegmentedButton(self.stage_frame)
         self.stage_buttons.grid(row=0, column=0, padx=40, pady=(10, 10), sticky="nsew")
 
-        # TODO: Bottom bar will be use to print on it the pictures of the process
         # create main entry and button
-        self.developer_logs_button = customtkinter.CTkButton(self, text="Developer Logs",
+        self.developer_logs_button = customtkinter.CTkButton(self, text="Developer Panel",
                                                              command=self.show_dev)
         self.developer_logs_button.grid(row=3, column=1, columnspan=2, padx=(20, 0), pady=(20, 20), sticky="nsew")
 
@@ -138,7 +137,6 @@ class App(customtkinter.CTk):
         self.appearance_mode_option_menu.set("Dark")
         self.scaling_option_menu.set("100%")
 
-        # TODO: Config will depend on whether we are on camera or load image version
         self.stage_buttons.configure(values=["Crop", "Warp", "Paragraph"], state=DISABLED)
 
     # ///////////////////////////////// WEBCAM EXECUTION /////////////////////////////////
@@ -156,7 +154,6 @@ class App(customtkinter.CTk):
     def stop_stream(self):
         self.streaming = False
 
-    # TODO: Enhance UI to be able to apply thresholds through a set of sliders
     def display_webcam(self):
 
         self.stage_buttons.set("")
@@ -203,7 +200,6 @@ class App(customtkinter.CTk):
 
         self.start_stream()
 
-    # TODO: Extract elements as a class
     def stream(self):
 
         while self.streaming:
@@ -273,7 +269,6 @@ class App(customtkinter.CTk):
         # Calculate the position of the points in the downscaled image
         points_downscaled = self.downscale_points(self.points)
 
-        # TODO: Might want to alter this to be class oriented as well
         self.clear_frame()
 
         pad_x = int((self.display_frame.winfo_width()) / 2)
@@ -313,6 +308,9 @@ class App(customtkinter.CTk):
         # This is the image over which we need to do stuff later
         warped_image = cv2.resize(warped_image, (a4_width, a4_height))
 
+        # Original image we are working image is overwritten by more processed one
+        self.img = warped_image
+
         self.image_height = self.display_frame.winfo_height() - 20
 
         warped_downscaled = imutils.resize(warped_image, height=self.image_height)
@@ -335,8 +333,6 @@ class App(customtkinter.CTk):
         # Everytime That an image load is needed
         self.stage_frame.mainloop()
 
-    # TODO: I need to display this live with the changes made from two sliders in order to find proper
-    #   paragraph detection.
     def display_paragraph_segmented(self, sheet):
         self.clear_frame()
 
@@ -384,7 +380,6 @@ class App(customtkinter.CTk):
 
     def detect_paragraph(self, sheet):
         while self.streaming:
-
             self.paragraph_label.configure(text=f"Paragraph size: {self.paragraph_slider.get()}")
 
             segmented_sheet, paragraphs = ppd.get_paragraph(sheet, self.paragraph_slider.get())
@@ -400,7 +395,23 @@ class App(customtkinter.CTk):
 
         self.clear_frame()
 
+        self.crop_paragraphs(paragraphs)
+
         # TODO: Call function that crops the paragraphs into a list and keeps doing stuff
+
+    def crop_paragraphs(self, paragraphs_coords):
+
+        paragraphs = []
+
+        for p in paragraphs_coords:
+            x, y, w, h = cv2.boundingRect(p)
+            paragraph = self.img[y:y + h, x:x + w]
+            paragraphs.append(paragraph)
+
+        for i, p in enumerate(paragraphs):
+
+            new_height = int(50 * Image.fromarray(p).height / 100)
+            cv2.imshow(f"Paragraph {i}", imutils.resize(p, height=new_height))
 
     # /////////////////////////////////////////////////////////////////////////////////////////
 
