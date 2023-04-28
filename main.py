@@ -419,10 +419,14 @@ class App(customtkinter.CTk):
 
         paragraphs = []
 
-        for p in paragraphs_coords:
+        for id, p in enumerate(paragraphs_coords):
             x, y, w, h = cv2.boundingRect(p)
             paragraph = self.img[y:y + h, x:x + w]
-            paragraphs.append(para.Paragraph(paragraph))
+            paragraphs.append(para.Paragraph(id, paragraph))
+
+        for paraglypho in paragraphs:
+            paraglypho.showimage()
+            print(f"Paragraph_number: {paraglypho.get_id()} \nParagraph: {paraglypho.ocr_image()}")
 
         return paragraphs
 

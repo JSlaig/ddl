@@ -1,7 +1,12 @@
+import cv2
+import pytesseract as pytesseract
+
 
 class Paragraph:
 
-    def __init__(self, image=None, text=None, words=[], size=None, font=None, justification=None):
+    def __init__(self, id=0, image=None, text=None, words=[], size=None, font=None, justification=None):
+        self.id = id
+
         self.image = image
 
         self.text = text
@@ -13,6 +18,9 @@ class Paragraph:
         self.font = font
 
         self.justification = justification
+
+    def get_id(self):
+        return self.id
 
     def get_image(self):
         return self.image
@@ -31,6 +39,9 @@ class Paragraph:
 
     def get_justification(self):
         return self.justification
+
+    def set_id(self, id):
+        self.id = id
 
     def set_image(self, image):
         self.image = image
@@ -53,3 +64,13 @@ class Paragraph:
     def write(self):
         print("Function aimed to call the .docx and use the params to write the text")
 
+    def showimage(self):
+        cv2.imshow(f"paragraph {self.id}", self.image)
+
+    def ocr_image(self):
+        if self.image is not None:
+            self.text = pytesseract.image_to_string(self.image)
+
+            return self.text
+
+        return ""
