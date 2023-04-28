@@ -1,6 +1,3 @@
-import math
-import time
-
 import customtkinter
 
 from tkinter import *
@@ -8,14 +5,17 @@ from tkinter import filedialog
 
 import cv2
 import imutils
+import math
 
 from PIL import Image, ImageTk
 
-from Preprocessors import preprocess_image as ipp
-from Preprocessors import preprocess_document as ppd
+from Preprocessors import ImagePreprocessor as ipp
+from Preprocessors import DocumentPreprocessor as ppd
 
-from UI import shape_cropper as sp
-from UI import top_level_window as tlp
+from Model import Paragraph as para
+
+from UI import ShapeCropper as sp
+from UI import TopLevelWindow as tlp
 
 from screeninfo import get_monitors
 
@@ -41,6 +41,7 @@ class App(customtkinter.CTk):
         super().__init__()
 
         # Globals
+        self.webcam_label = None
         self.toplevel_window = None
         self.paragraph_label = None
         self.paragraph_slider = None
@@ -187,8 +188,8 @@ class App(customtkinter.CTk):
 
                 display_img = ImageTk.PhotoImage(image=img)
 
-                self.webcam_display.configure(image=display_img)
-                self.webcam_display.image = display_img
+                self.webcam_label.configure(image=display_img)
+                self.webcam_label.image = display_img
 
                 self.display_frame.update()
 
@@ -232,9 +233,9 @@ class App(customtkinter.CTk):
         self.slider_2.set(80)
 
         # Set elements for the webcam
-        webcam_display = customtkinter.CTkLabel(self.display_frame, text="", fg_color="transparent",
+        self.webcam_label = customtkinter.CTkLabel(self.display_frame, text="", fg_color="transparent",
                                                 corner_radius=10)
-        webcam_display.grid(column=0, row=0, padx=10, pady=10, sticky="NSEW")
+        self.webcam_label.grid(column=0, row=0, padx=10, pady=10, sticky="NSEW")
 
         btn_next = customtkinter.CTkButton(self.next_button_frame, width=self.next_button_frame.winfo_width() - 20,
                                            text="Next",
@@ -392,7 +393,7 @@ class App(customtkinter.CTk):
             self.paragraph_label.configure(text=f"Paragraph size: {self.paragraph_slider.get()}")
 
             segmented_sheet, paragraph_coords, dev_imgs_list = ppd.get_paragraph(sheet, self.paragraph_slider.get(),
-                                                                           self.dev_switch.get())
+                                                                                 self.dev_switch.get())
 
             segmented_sheet_downscaled = imutils.resize(segmented_sheet, height=self.image_height)
 
@@ -421,11 +422,7 @@ class App(customtkinter.CTk):
         for p in paragraphs_coords:
             x, y, w, h = cv2.boundingRect(p)
             paragraph = self.img[y:y + h, x:x + w]
-            paragraphs.append(paragraph)
-
-        for i, p in enumerate(paragraphs):
-            new_height = int(50 * Image.fromarray(p).height / 100)
-            cv2.imshow(f"Paragraph {i}", imutils.resize(p, height=new_height))
+            paragraphs.append(para.Paragraph(paragraph))
 
         return paragraphs
 

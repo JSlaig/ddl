@@ -1,8 +1,7 @@
 import cv2
-import imutils
 import numpy as np
 
-from Utils import utlis
+from Utils import Utlis as utlis
 
 
 def get_edges(img, dev_flag, threshold_1=10, threshold_2=80):
