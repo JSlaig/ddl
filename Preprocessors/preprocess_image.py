@@ -8,24 +8,24 @@ from Utils import utlis
 def get_edges(img, dev_flag, threshold_1=10, threshold_2=80):
     img_blur = cv2.GaussianBlur(img, (5, 5), 1)  # ADD GAUSSIAN BLUR
 
-    img_threshold = cv2.Canny(img_blur, threshold_1, threshold_2)  # APPLY CANNY BLUR
+    img_canny = cv2.Canny(img_blur, threshold_1, threshold_2)  # APPLY CANNY BLUR
 
     kernel = np.ones((5, 5))
 
-    img_dilated = cv2.dilate(img_threshold, kernel, iterations=2)  # APPLY DILATION
+    img_dilated = cv2.dilate(img_canny, kernel, iterations=2)  # APPLY DILATION
 
     img_eroded = cv2.erode(img_dilated, kernel, iterations=1)  # APPLY EROSION
 
-    ret, img_otsu = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    img_otsu = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
 
     dev = {}
 
-    # TODO: Make this actually be triggered by checkbox in UI
     if dev_flag != 0:
         dev["Gaussian Blurred"] = img_blur
+        dev["Otsu"] = img_otsu
+        dev["Canny"] = img_canny
         dev["Dilated"] = img_dilated
         dev["Eroded"] = img_eroded
-        dev["Otsu"] = img_otsu
 
     return img_otsu, dev
 

@@ -232,9 +232,9 @@ class App(customtkinter.CTk):
         self.slider_2.set(80)
 
         # Set elements for the webcam
-        self.webcam_display = customtkinter.CTkLabel(self.display_frame, text="", fg_color="transparent",
-                                                     corner_radius=10)
-        self.webcam_display.grid(column=0, row=0, padx=10, pady=10, sticky="NSEW")
+        webcam_display = customtkinter.CTkLabel(self.display_frame, text="", fg_color="transparent",
+                                                corner_radius=10)
+        webcam_display.grid(column=0, row=0, padx=10, pady=10, sticky="NSEW")
 
         btn_next = customtkinter.CTkButton(self.next_button_frame, width=self.next_button_frame.winfo_width() - 20,
                                            text="Next",
@@ -391,7 +391,9 @@ class App(customtkinter.CTk):
         while self.streaming:
             self.paragraph_label.configure(text=f"Paragraph size: {self.paragraph_slider.get()}")
 
-            segmented_sheet, paragraphs = ppd.get_paragraph(sheet, self.paragraph_slider.get())
+            segmented_sheet, paragraph_coords, dev_imgs_list = ppd.get_paragraph(sheet, self.paragraph_slider.get(),
+                                                                           self.dev_switch.get())
+
             segmented_sheet_downscaled = imutils.resize(segmented_sheet, height=self.image_height)
 
             segmented_sheet_downscaled_preview = Image.fromarray(segmented_sheet_downscaled)
@@ -402,11 +404,15 @@ class App(customtkinter.CTk):
 
             self.display_frame.update()
 
+        # Insert the dev images in the list to display
+        for dev_title, dev_img in dev_imgs_list.items():
+            self.dev_imgs[dev_title] = dev_img
+
         self.frame_clear()
 
-        self.paragraph_crop(paragraphs)
+        paragraphs = self.paragraph_crop(paragraph_coords)  # List of paragraph images
 
-        # TODO: Call function that crops the paragraphs into a list and keeps doing stuff
+        # TODO: OCR for each paragraph, further crop-down, other recognition
 
     def paragraph_crop(self, paragraphs_coords):
 
@@ -420,6 +426,8 @@ class App(customtkinter.CTk):
         for i, p in enumerate(paragraphs):
             new_height = int(50 * Image.fromarray(p).height / 100)
             cv2.imshow(f"Paragraph {i}", imutils.resize(p, height=new_height))
+
+        return paragraphs
 
     # /////////////////////////////////////////////////////////////////////////////////////////
     def dev_show(self):

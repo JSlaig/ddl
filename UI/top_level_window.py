@@ -27,7 +27,6 @@ class ToplevelWindow(customtkinter.CTkToplevel):
         self.geometry(f"{self.width}x{self.height}")
 
     def init_tabs(self, images):
-        # TODO: Make it receive images as a dictionary containing all the developer images we are trying to display
         if not images:
             label = customtkinter.CTkLabel(self, text="Nothing to see here...")
             label.pack()

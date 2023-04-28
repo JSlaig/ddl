@@ -3,7 +3,7 @@ import numpy as np
 import imutils
 
 
-def get_paragraph(sheet, size, flag_dev=False):
+def get_paragraph(sheet, size, dev_flag=False):
     sheet_copy = sheet.copy()
 
     sheet_gray = cv2.cvtColor(sheet_copy, cv2.COLOR_BGR2GRAY)
@@ -14,28 +14,18 @@ def get_paragraph(sheet, size, flag_dev=False):
     sheet_otsu = cv2.threshold(sheet_blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 
     # Create rectangular structuring element and dilate
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (int(size), int(size)))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (int(size*1.5), int(size)))
     sheet_dilated = cv2.dilate(sheet_otsu, kernel, iterations=4)
 
     sheet_bboxed, contours = draw_paragraph(sheet_dilated, sheet)
 
-    # TODO: Manage with checkbox on UI
-    if flag_dev:
-        sheet_gray_ds = imutils.resize(sheet_gray, height=600)
-        sheet_blur_ds = imutils.resize(sheet_blur, height=600)
-        sheet_otsu_ds = imutils.resize(sheet_otsu, height=600)
-        sheet_dilated_ds = imutils.resize(sheet_dilated, height=600)
-        sheet_bboxed_ds = imutils.resize(sheet_bboxed, height=600)
+    dev = {}
 
-        cv2.imshow("Grayscale", sheet_gray_ds)
-        cv2.imshow("Blur", sheet_blur_ds)
-        cv2.imshow("Binary Otsu", sheet_otsu_ds)
-        cv2.imshow("Dilated", sheet_dilated_ds)
-        cv2.imshow("Bound Boxed", cv2.cvtColor(sheet_bboxed_ds, cv2.COLOR_BGR2RGB))
+    if dev_flag != 0:
+        dev["Inverse Binary"] = sheet_otsu
+        dev["Dilated Text"] = sheet_dilated
 
-        cv2.waitkey(0)
-
-    return sheet_bboxed, contours
+    return sheet_bboxed, contours, dev
 
 
 def draw_paragraph(dilated_sheet, sheet):

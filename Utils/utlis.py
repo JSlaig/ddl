@@ -49,7 +49,6 @@ def biggest_contour(contours):
         # the program itself, thing is that it affects the detection of shape somehow
         # by avoiding areas smaller than the value specified, when the picture is way too
         # small, the if does not trigger and therefore a later error is triggered
-        # TODO: Find sweet-spot for the area value
 
         if 2000 < area:
             peri = cv2.arcLength(i, True)
