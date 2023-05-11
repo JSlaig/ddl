@@ -18,7 +18,7 @@ class Word:
     def get_image(self):
         return self.image
 
-    def get_word(self):
+    def get_text(self):
         return self.text
 
     def get_weight(self):
@@ -33,7 +33,7 @@ class Word:
     def set_image(self, image):
         self.image = image
 
-    def set_word(self, text):
+    def set_text(self, text):
         self.text = text
 
     def set_weight(self, weight):

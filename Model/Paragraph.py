@@ -22,6 +22,12 @@ class Paragraph:
         self.justification = justification
 
         self.detect_words()
+        self.ocr_image()
+
+        words = self.text.split(" ")
+        for i, word in enumerate(words):
+            self.words[i].set_text(word)
+
 
     def get_id(self):
         return self.id
@@ -118,13 +124,9 @@ class Paragraph:
         cv2.imshow(f"paragraph {self.id}", self.preview)
 
         for word in self.words:
-            cv2.imshow(f"word {word.get_id()}: ", word.get_image())
+            print(word.get_text())
 
     # Won't be used since OCR will work word by word
     def ocr_image(self):
         if self.image is not None:
             self.text = pytesseract.image_to_string(self.image)
-
-            return self.text
-
-        return ""
