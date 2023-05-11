@@ -413,7 +413,11 @@ class App(customtkinter.CTk):
 
         paragraphs = self.paragraph_crop(paragraph_coords)  # List of paragraph images
 
+
         # TODO: OCR for each paragraph, further crop-down, other recognition
+
+        # Preview of stuff
+        paragraphs[0].showimage()
 
     def paragraph_crop(self, paragraphs_coords):
 
@@ -424,11 +428,9 @@ class App(customtkinter.CTk):
             paragraph = self.img[y:y + h, x:x + w]
             paragraphs.append(para.Paragraph(id, paragraph))
 
-        for paraglypho in paragraphs:
-            paraglypho.showimage()
-            print(f"Paragraph_number: {paraglypho.get_id()} \nParagraph: {paraglypho.ocr_image()}")
+        reversed_paragraphs = list(reversed(paragraphs))
 
-        return paragraphs
+        return reversed_paragraphs
 
     # /////////////////////////////////////////////////////////////////////////////////////////
     def dev_show(self):
