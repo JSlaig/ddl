@@ -102,6 +102,8 @@ class Paragraph:
         contours = cv2.findContours(dilated_sheet, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         contours = contours[0] if len(contours) == 2 else contours[1]
 
+        contours = sorted(contours, key=lambda c: cv2.boundingRect(c)[0])
+
         for c in contours:
             x, y, w, h = cv2.boundingRect(c)
             cv2.rectangle(image, (x, y), (x + w, y + h), (1, 156, 255), 2)

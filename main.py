@@ -428,9 +428,7 @@ class App(customtkinter.CTk):
             paragraph = self.img[y:y + h, x:x + w]
             paragraphs.append(para.Paragraph(id, paragraph))
 
-        reversed_paragraphs = list(reversed(paragraphs))
-
-        return reversed_paragraphs
+        return paragraphs
 
     # /////////////////////////////////////////////////////////////////////////////////////////
     def dev_show(self):
