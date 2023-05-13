@@ -78,8 +78,13 @@ class Paragraph:
         sheet_otsu = cv2.threshold(sheet_blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 
         # Create rectangular structuring element and dilate
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (int(7), int(5)))
-        sheet_dilated = cv2.dilate(sheet_otsu, kernel, iterations=4)
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (int(7), int(7)))
+
+        sheet_eroded = cv2.erode(sheet_otsu, kernel, iterations=1)
+        sheet_dilated = cv2.dilate(sheet_eroded, kernel, iterations=6)
+
+        cv2.imshow("eroded", sheet_eroded)
+        cv2.imshow("dilated", sheet_dilated)
 
         imagaux, contours = self.get_word_coords(sheet_dilated, sheet_copy)
 
