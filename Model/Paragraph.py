@@ -102,6 +102,7 @@ class Paragraph:
             print(f"Word object id: {id}")
             print(f"Corresponding word: {words[id-1]}")
 
+
             word_list.append(wd.Word(id, cropped_word, words[id-1]))
 
         self.words = word_list
