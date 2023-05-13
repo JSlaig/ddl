@@ -97,13 +97,14 @@ class Paragraph:
             cropped_word = self.image[y:y + h, x:x + w]
 
             cv2.imshow("boundboxxed", self.preview)
-            print(f"Paragraph {self.id}: {self.text}")
+
+            print(f"\nParagraph {self.id}: {self.text}")
             print(f"Word list with length {len(words)}: {words}")
             print(f"Word object id: {id}")
-            print(f"Corresponding word: {words[id-1]}")
+            print(f"Corresponding word: {words[id]}")
+            print(f"Object word length: {len(word_list)}")
 
-
-            word_list.append(wd.Word(id, cropped_word, words[id-1]))
+            word_list.append(wd.Word(id, cropped_word, words[id - 1]))
 
         self.words = word_list
 
