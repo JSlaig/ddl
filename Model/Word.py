@@ -3,14 +3,12 @@ from pytesseract import pytesseract
 
 
 class Word:
-    def __init__(self, id=0, image=None, text=None, weight=None, color=None):
+    def __init__(self, id=0, image=None, text="", weight="none", color="black"):
         self.id = id
         self.image = image
         self.text = text
         self.weight = weight
         self.color = color
-
-        # self.ocr_image()
 
     def get_id(self):
         return self.id
@@ -42,13 +40,4 @@ class Word:
     def set_color(self, color):
         self.color = color
 
-    def write(self):
-        print("This function will write in the document word per word")
 
-    def ocr_image(self):
-        if self.image is not None:
-            self.text = pytesseract.image_to_string(self.image)
-
-            return self.text
-
-        return ""

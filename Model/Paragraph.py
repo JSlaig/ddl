@@ -1,4 +1,5 @@
 import cv2
+import imutils
 import pytesseract as pytesseract
 from Model import Word as wd
 
@@ -21,13 +22,8 @@ class Paragraph:
 
         self.justification = justification
 
-        self.detect_words()
         self.ocr_image()
-
-        words = self.text.split(" ")
-        for i, word in enumerate(words):
-            self.words[i].set_text(word)
-
+        self.detect_words()
 
     def get_id(self):
         return self.id
@@ -87,7 +83,12 @@ class Paragraph:
 
         imagaux, contours = self.get_word_coords(sheet_dilated, sheet_copy)
 
-        self.preview = imagaux
+        self.preview = imutils.resize(imagaux, width=600)
+
+        words = self.text.split()
+
+        # for i, word in enumerate(words):
+        #  self.words[i].set_text(word)
 
         word_list = []
 
@@ -95,9 +96,14 @@ class Paragraph:
             x, y, w, h = cv2.boundingRect(p)
             cropped_word = self.image[y:y + h, x:x + w]
 
-            word_list.append(wd.Word(id, cropped_word))
+            cv2.imshow("boundboxxed", self.preview)
+            print(f"Paragraph {self.id}: {self.text}")
+            print(f"Word list with length {len(words)}: {words}")
+            print(f"Word object id: {id}")
+            print(f"Corresponding word: {words[id-1]}")
 
-        #self.words = list(reversed(word_list))
+            word_list.append(wd.Word(id, cropped_word, words[id-1]))
+
         self.words = word_list
 
     @staticmethod
@@ -122,9 +128,6 @@ class Paragraph:
     def showimage(self):
         cv2.imshow(f"paragraph {self.id}", self.image)
         cv2.imshow(f"paragraph {self.id}", self.preview)
-
-        for word in self.words:
-            print(word.get_text())
 
     # Won't be used since OCR will work word by word
     def ocr_image(self):

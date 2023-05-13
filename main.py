@@ -417,7 +417,7 @@ class App(customtkinter.CTk):
         # TODO: OCR for each paragraph, further crop-down, other recognition
 
         # Preview of stuff
-        paragraphs[0].showimage()
+        #paragraphs[0].showimage()
 
     def paragraph_crop(self, paragraphs_coords):
 
