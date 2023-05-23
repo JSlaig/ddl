@@ -6,7 +6,7 @@ from Model import Word as wd
 
 class Paragraph:
 
-    def __init__(self, id=0, image=None, text=None, size=None, font=None, justification=None):
+    def __init__(self, id=0, image=None, text=None, size=None, font='Calibri', justification=None):
         self.preview = None
         self.id = id
 
