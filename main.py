@@ -444,12 +444,6 @@ class App(customtkinter.CTk):
         return paragraphs
 
     # /////////////////////////////////////////////////////////////////////////////////////////
-    def dev_show(self):
-        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
-            self.toplevel_window = tlp.ToplevelWindow(self)
-            self.toplevel_window.init_tabs(self.dev_imgs)
-        else:
-            self.toplevel_window.destroy()
 
     # ///////////////////////////////// AUXILIARY /////////////////////////////////
     def frame_clear(self):
@@ -505,6 +499,13 @@ class App(customtkinter.CTk):
         points[3][1] = points[3][1] * self.height_ratio
 
         return points
+
+    def dev_show(self):
+        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+            self.toplevel_window = tlp.ToplevelWindow(self)
+            self.toplevel_window.init_tabs(self.dev_imgs)
+        else:
+            self.toplevel_window.destroy()
 
     @staticmethod
     def change_appearance_mode_event(new_appearance_mode: str):

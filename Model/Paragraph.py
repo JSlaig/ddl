@@ -78,17 +78,17 @@ class Paragraph:
         sheet_otsu = cv2.threshold(sheet_blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 
         # Create rectangular structuring element and dilate
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (int(7), int(7)))
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (int(4), int(2)))
 
-        sheet_eroded = cv2.erode(sheet_otsu, kernel, iterations=1)
-        sheet_dilated = cv2.dilate(sheet_eroded, kernel, iterations=6)
+        sheet_dilated = cv2.dilate(sheet_otsu, kernel, iterations=6)
+        sheet_eroded = cv2.erode(sheet_dilated, kernel, iterations=1)
 
-        cv2.imshow("eroded", sheet_eroded)
         cv2.imshow("dilated", sheet_dilated)
+        cv2.imshow("eroded", sheet_eroded)
 
-        imagaux, contours = self.get_word_coords(sheet_dilated, sheet_copy)
+        img_aux, contours = self.get_word_coords(sheet_dilated, sheet_copy)
 
-        self.preview = imutils.resize(imagaux, width=600)
+        self.preview = imutils.resize(img_aux, width=600)
 
         words = self.text.split()
 
@@ -101,7 +101,8 @@ class Paragraph:
             cv2.imshow("boundboxxed", self.preview)
 
             print(f"\nParagraph {self.id}: {self.text}")
-            print(f"Word list with length {len(words)}: {words}")
+            print(f"Number of words OCR'd {len(words)}: {words}")
+            print(f"Number of contours detected: {len(contours)}")
             print(f"Word object id: {id}")
             print(f"Corresponding word: {words[id]}")
             print(f"Object word length: {len(word_list)}")

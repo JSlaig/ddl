@@ -14,21 +14,17 @@ def get_paragraph(sheet, size, min_area, dev_flag=False):
     sheet_otsu = cv2.threshold(sheet_blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 
     # Create rectangular structuring element and dilate
-   #kernel_erode = cv2.getStructuringElement(cv2.MORPH_RECT, (int(size * 0.25), int(size * 0.25)))
+    # kernel_erode = cv2.getStructuringElement(cv2.MORPH_RECT, (int(size * 0.25), int(size * 0.25)))
     kernel_dilate = cv2.getStructuringElement(cv2.MORPH_RECT, (int(size * 1.5), int(size)))
 
-    #sheet_eroded = cv2.erode(sheet_otsu, kernel_erode, iterations=2)
     sheet_dilated = cv2.dilate(sheet_otsu, kernel_dilate, iterations=4)
 
     sheet_bboxed, contours = draw_paragraph(sheet_dilated, sheet, min_area)
-
-
 
     dev = {}
 
     if dev_flag != 0:
         dev["Inverse Binary"] = sheet_otsu
-        #dev["Eroded text"] = sheet_eroded
         dev["Dilated Text"] = sheet_dilated
 
     return sheet_bboxed, contours, dev
@@ -65,6 +61,7 @@ def filter_contours(contours, min_area=0):
 
     return filtered_contours
 
+
 def draw_paragraph(dilated_sheet, sheet, min_area):
     sheet_copy = sheet.copy()
 
@@ -81,5 +78,3 @@ def draw_paragraph(dilated_sheet, sheet, min_area):
         cv2.rectangle(sheet_copy, (x, y), (x + w, y + h), (1, 156, 255), 2)
 
     return sheet_copy, contours
-
-
