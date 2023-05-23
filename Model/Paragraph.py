@@ -92,9 +92,6 @@ class Paragraph:
 
         words = self.text.split()
 
-        # for i, word in enumerate(words):
-        #  self.words[i].set_text(word)
-
         word_list = []
 
         for id, p in enumerate(contours):
@@ -129,14 +126,10 @@ class Paragraph:
 
         return image, contours
 
-    def write(self):
-        print("Function aimed to call the .docx and use the params to write the text")
-
-    def showimage(self):
+    def show_image(self):
         cv2.imshow(f"paragraph {self.id}", self.image)
         cv2.imshow(f"paragraph {self.id}", self.preview)
 
-    # Won't be used since OCR will work word by word
     def ocr_image(self):
         if self.image is not None:
             self.text = pytesseract.image_to_string(self.image)

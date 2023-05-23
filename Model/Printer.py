@@ -1,5 +1,4 @@
-from docx import Document
-from docx.shared import Cm
+import docx
 
 import tkinter as tk
 from tkinter import filedialog
@@ -9,7 +8,7 @@ from Model import Paragraph
 
 
 def write_document(paragraphs):
-    document = Document()
+    document = docx.Document()
 
     for paragraph in paragraphs:
         write_paragraph(document, paragraph)
