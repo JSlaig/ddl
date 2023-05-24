@@ -4,9 +4,23 @@ import pytesseract as pytesseract
 from Model import Word as wd
 
 
+def sort_algorythm(contours):
+
+    # Calculate the average y-axis value and height for each contour
+    contour_data = [(c, cv2.boundingRect(c)[1], cv2.boundingRect(c)[3]) for c in contours]
+
+    # Sort the contours based on average y-axis value (primary key) and height (secondary key)
+    contour_data = sorted(contour_data, key=lambda data: (data[1], data[2]))
+
+    # Extract the contours from the sorted data
+    contours = [data[0] for data in contour_data]
+
+    return contours
+
+
 class Paragraph:
 
-    def __init__(self, id=0, image=None, text=None, size=None, font='Calibri', justification=None, dev=False):
+    def __init__(self, id=0, image=None, text=None, size=None, font='Calibri', justification=None):
         self.preview = None
         self.id = id
 
@@ -23,7 +37,8 @@ class Paragraph:
         self.justification = justification
 
         self.ocr_image()
-        self.detect_words(dev)
+
+        self.detect_words()
 
     def get_id(self):
         return self.id
@@ -42,6 +57,9 @@ class Paragraph:
 
     def get_font(self):
         return self.font
+
+    def get_dev_imgs(self):
+        return self.dev_imgs
 
     def get_justification(self):
         return self.justification
@@ -67,7 +85,7 @@ class Paragraph:
     def set_justification(self, justification):
         self.justification = justification
 
-    def detect_words(self, dev=False):
+    def detect_words(self):
         sheet_copy = self.image.copy()
 
         sheet_gray = cv2.cvtColor(sheet_copy, cv2.COLOR_BGR2GRAY)
@@ -85,33 +103,20 @@ class Paragraph:
 
         img_aux, contours = self.get_word_coords(sheet_eroded, sheet_copy)
 
-        # Calculate the average y-axis value and height for each contour
-        contour_data = [(c, cv2.boundingRect(c)[1], cv2.boundingRect(c)[3]) for c in contours]
-
-        # Sort the contours based on average y-axis value (primary key) and height (secondary key)
-        contour_data = sorted(contour_data, key=lambda data: (data[1], data[2]))
-
-        # Extract the contours from the sorted data
-        contours = [data[0] for data in contour_data]
+        contours = sort_algorythm(contours)
 
         words = self.text.split()
 
         word_list = []
 
-        print(f"Contour length: {len(contours)}")
-        print(f"Words length: {len(words)}")
-
         if len(contours) != len(words):
-
             for id, p in enumerate(words):
-                print(f"Paragraph: {self.id} is unparametrized")
                 word_list.append(wd.Word(id, None, words[id]))
                 #cv2.imshow("image", img_aux)
                 #cv2.waitKey()
 
         else:
             for id, p in enumerate(contours):
-                print(f"Paragraph: {self.id} is parametrized")
                 x, y, w, h = cv2.boundingRect(p)
                 cropped_word = self.image[y:y + h, x:x + w]
 
@@ -129,20 +134,9 @@ class Paragraph:
         cv2.imshow("image", img_aux)
         cv2.waitKey()
 
-        #print(f"Word list: {word_list}")
-
         self.preview = imutils.resize(img_aux, width=1200)
 
         self.words = word_list
-
-        # Display the result or perform additional processing
-        if dev:
-            # cv2.imshow("boundboxxed", self.preview)
-            # cv2.imshow("dilated", sheet_dilated)
-            # cv2.imshow("eroded", sheet_eroded)
-            # cv2.waitKey()
-            print("we enter dev")
-
 
     @staticmethod
     def get_word_coords(dilated_sheet, default):
