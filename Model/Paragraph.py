@@ -78,17 +78,28 @@ class Paragraph:
         sheet_otsu = cv2.threshold(sheet_blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 
         # Create rectangular structuring element and dilate
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (int(4), int(2)))
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (int(5), int(3)))
 
-        sheet_dilated = cv2.dilate(sheet_otsu, kernel, iterations=6)
-        sheet_eroded = cv2.erode(sheet_dilated, kernel, iterations=1)
+        sheet_dilated = cv2.dilate(sheet_otsu, kernel, iterations=4)
+        sheet_eroded = cv2.erode(sheet_dilated, kernel, iterations=5)
 
-        cv2.imshow("dilated", sheet_dilated)
-        cv2.imshow("eroded", sheet_eroded)
+        #cv2.imshow("dilated", sheet_dilated)
+        #cv2.imshow("eroded", sheet_eroded)
+        #cv2.waitKey()
 
-        img_aux, contours = self.get_word_coords(sheet_dilated, sheet_copy)
+        img_aux, contours = self.get_word_coords(sheet_eroded, sheet_copy)
 
-        self.preview = imutils.resize(img_aux, width=600)
+        # Sort contours in read order
+        #contours = sorted(contours, key=lambda c: (cv2.boundingRect(c)[1], cv2.boundingRect(c)[0]))
+
+        # Calculate the average y-axis value and height for each contour
+        contour_data = [(c, cv2.boundingRect(c)[1], cv2.boundingRect(c)[3]) for c in contours]
+
+        # Sort the contours based on average y-axis value (primary key) and height (secondary key)
+        contour_data = sorted(contour_data, key=lambda data: (data[1], data[2]))
+
+        # Extract the contours from the sorted data
+        contours = [data[0] for data in contour_data]
 
         words = self.text.split()
 
@@ -98,16 +109,35 @@ class Paragraph:
             x, y, w, h = cv2.boundingRect(p)
             cropped_word = self.image[y:y + h, x:x + w]
 
-            cv2.imshow("boundboxxed", self.preview)
+            # Draw the bounding box rectangle
+            cv2.rectangle(img_aux, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-            print(f"\nParagraph {self.id}: {self.text}")
-            print(f"Number of words OCR'd {len(words)}: {words}")
-            print(f"Number of contours detected: {len(contours)}")
-            print(f"Word object id: {id}")
-            print(f"Corresponding word: {words[id]}")
-            print(f"Object word length: {len(word_list)}")
+            # Add the contour index label in the bounding box
+            label = str(id)
+            cv2.putText(img_aux, label, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
-            word_list.append(wd.Word(id, cropped_word, words[id - 1]))
+            #print(f"\nParagraph {self.id}: {self.text}")
+            #print(f"Number of words OCR'd {len(words)}: {words}")
+            #print(f"Number of contours detected: {len(contours)}")
+            #print(f"Word object id: {id}")
+            #print(f"Corresponding word: {words[id]}")
+            #print(f"Object word length: {len(word_list)}")
+
+            #if len(contours) > len(words):
+            #cv2.imshow("image", img_aux)
+            #cv2.imshow(f"{words[id]},{len(contours)},{len(words)},{id}", cropped_word)
+            #cv2.waitKey()
+
+            word_list.append(wd.Word(id, cropped_word, words[id]))
+
+            #for id, word in enumerate(word_list):
+             #   print(f"paragraph {id}")
+              #  print(f"{word.get_text()}")
+
+        self.preview = imutils.resize(img_aux, width=1200)
+
+        # Display the result or perform additional processing
+        #cv2.imshow("boundboxxed", self.preview)
 
         self.words = word_list
 
@@ -126,10 +156,6 @@ class Paragraph:
             cv2.rectangle(image, (x, y), (x + w, y + h), (1, 156, 255), 2)
 
         return image, contours
-
-    def show_image(self):
-        cv2.imshow(f"paragraph {self.id}", self.image)
-        cv2.imshow(f"paragraph {self.id}", self.preview)
 
     def ocr_image(self):
         if self.image is not None:

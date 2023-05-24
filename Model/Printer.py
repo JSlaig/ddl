@@ -1,3 +1,4 @@
+import cv2
 import docx
 
 import tkinter as tk
@@ -21,12 +22,13 @@ def write_paragraph(document, paragraph):
 
     words = paragraph.get_words()
 
-    font = paragraph.get_font()
-
     style = document.styles['Normal']
     style.font.name = paragraph.get_font()
 
-    for word in words:
+    for id, word in enumerate(words):
+        #cv2.imshow(f"{id}: {word.get_text()}", word.get_image())
+        #cv2.waitKey()
+
         if word.get_weight() == 'normal':
             p.add_run(word.get_text())
         elif word.get_weight() == 'bold':
@@ -38,18 +40,22 @@ def write_paragraph(document, paragraph):
         else:
             print(f'there was an error writing the word {word.get_id()}:  {word.get_text()}')
 
+        p.add_run(" ")
 
-def save_dialog(document):
-    root = tk.Tk()
-    root.withdraw()  # Hide the main tkinter window
 
-    file_path = filedialog.asksaveasfilename(defaultextension='.docx')
+def save_dialog():
+    path = filedialog.asksaveasfilename(defaultextension=".docx")
 
-    if file_path:
-        save_document(document, file_path)
+    if len(path) > 0:
+        # Read image on opencv
+        return path
     else:
         print("Save operation cancelled.")
+        return None
 
 
-def save_document(document, file_path):
-    document.save(file_path)
+def save_document(document):
+    file_path = save_dialog()
+
+    if file_path is not None:
+        document.save(file_path)

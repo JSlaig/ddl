@@ -3,7 +3,7 @@ from pytesseract import pytesseract
 
 
 class Word:
-    def __init__(self, id=0, image=None, text="", weight="none", color="black"):
+    def __init__(self, id=0, image=None, text="", weight="normal", color="black"):
         self.id = id
         self.image = image
         self.text = text

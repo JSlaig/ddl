@@ -369,7 +369,8 @@ class App(customtkinter.CTk):
 
         init_max_area = int(Image.fromarray(downscaled_sheet).height * Image.fromarray(downscaled_sheet).width)
 
-        self.paragraph_min_size_slider = customtkinter.CTkSlider(self.slider_frame, from_=0, to=init_max_area, number_of_steps=init_max_area)
+        self.paragraph_min_size_slider = customtkinter.CTkSlider(self.slider_frame, from_=0, to=init_max_area,
+                                                                 number_of_steps=init_max_area)
         self.paragraph_min_size_slider.grid(row=3, column=0, padx=(20, 10), pady=(5, 10), sticky="ew")
         self.paragraph_min_size_slider.set(0)
 
@@ -380,9 +381,9 @@ class App(customtkinter.CTk):
         self.paragraph_label.grid(row=0, column=0, padx=10, pady=10, sticky="NSEW")
 
         self.paragraph_min_size_label = customtkinter.CTkLabel(self.slider_frame,
-                                                      text=f"Minimum size: {self.paragraph_min_size_slider.get()}",
-                                                      fg_color="transparent",
-                                                      corner_radius=10)
+                                                               text=f"Minimum size: {self.paragraph_min_size_slider.get()}",
+                                                               fg_color="transparent",
+                                                               corner_radius=10)
         self.paragraph_min_size_label.grid(row=2, column=0, padx=10, pady=10, sticky="NSEW")
 
         btn_next = customtkinter.CTkButton(self.next_button_frame, width=self.next_button_frame.winfo_width() - 20,
@@ -409,7 +410,8 @@ class App(customtkinter.CTk):
             self.paragraph_label.configure(text=f"Paragraph size: {self.paragraph_slider.get()}")
             self.paragraph_min_size_label.configure(text=f"Paragraph size: {self.paragraph_min_size_slider.get()}")
 
-            segmented_sheet, paragraph_coords, dev_imgs_list = ppd.get_paragraph(sheet, self.paragraph_slider.get(), self.paragraph_min_size_slider.get(),
+            segmented_sheet, paragraph_coords, dev_imgs_list = ppd.get_paragraph(sheet, self.paragraph_slider.get(),
+                                                                                 self.paragraph_min_size_slider.get(),
                                                                                  self.dev_switch.get())
 
             segmented_sheet_downscaled = imutils.resize(segmented_sheet, height=self.image_height)
