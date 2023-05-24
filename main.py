@@ -441,7 +441,7 @@ class App(customtkinter.CTk):
         for id, p in enumerate(paragraphs_coords):
             x, y, w, h = cv2.boundingRect(p)
             paragraph = self.img[y:y + h, x:x + w]
-            paragraphs.append(para.Paragraph(id, paragraph))
+            paragraphs.append(para.Paragraph(id, paragraph, self.dev_switch.get()))
 
         return paragraphs
 

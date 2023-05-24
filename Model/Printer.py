@@ -26,9 +26,6 @@ def write_paragraph(document, paragraph):
     style.font.name = paragraph.get_font()
 
     for id, word in enumerate(words):
-        #cv2.imshow(f"{id}: {word.get_text()}", word.get_image())
-        #cv2.waitKey()
-
         if word.get_weight() == 'normal':
             p.add_run(word.get_text())
         elif word.get_weight() == 'bold':
@@ -44,10 +41,9 @@ def write_paragraph(document, paragraph):
 
 
 def save_dialog():
-    path = filedialog.asksaveasfilename(defaultextension=".docx")
+    path = filedialog.asksaveasfilename(defaultextension=".docx", initialfile="untitled.docx")
 
     if len(path) > 0:
-        # Read image on opencv
         return path
     else:
         print("Save operation cancelled.")

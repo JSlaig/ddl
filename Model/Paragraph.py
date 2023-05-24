@@ -6,7 +6,7 @@ from Model import Word as wd
 
 class Paragraph:
 
-    def __init__(self, id=0, image=None, text=None, size=None, font='Calibri', justification=None):
+    def __init__(self, id=0, image=None, text=None, size=None, font='Calibri', justification=None, dev=False):
         self.preview = None
         self.id = id
 
@@ -23,7 +23,7 @@ class Paragraph:
         self.justification = justification
 
         self.ocr_image()
-        self.detect_words()
+        self.detect_words(dev)
 
     def get_id(self):
         return self.id
@@ -67,7 +67,7 @@ class Paragraph:
     def set_justification(self, justification):
         self.justification = justification
 
-    def detect_words(self):
+    def detect_words(self, dev=False):
         sheet_copy = self.image.copy()
 
         sheet_gray = cv2.cvtColor(sheet_copy, cv2.COLOR_BGR2GRAY)
@@ -83,14 +83,7 @@ class Paragraph:
         sheet_dilated = cv2.dilate(sheet_otsu, kernel, iterations=4)
         sheet_eroded = cv2.erode(sheet_dilated, kernel, iterations=5)
 
-        #cv2.imshow("dilated", sheet_dilated)
-        #cv2.imshow("eroded", sheet_eroded)
-        #cv2.waitKey()
-
         img_aux, contours = self.get_word_coords(sheet_eroded, sheet_copy)
-
-        # Sort contours in read order
-        #contours = sorted(contours, key=lambda c: (cv2.boundingRect(c)[1], cv2.boundingRect(c)[0]))
 
         # Calculate the average y-axis value and height for each contour
         contour_data = [(c, cv2.boundingRect(c)[1], cv2.boundingRect(c)[3]) for c in contours]
@@ -105,41 +98,51 @@ class Paragraph:
 
         word_list = []
 
-        for id, p in enumerate(contours):
-            x, y, w, h = cv2.boundingRect(p)
-            cropped_word = self.image[y:y + h, x:x + w]
+        print(f"Contour length: {len(contours)}")
+        print(f"Words length: {len(words)}")
 
-            # Draw the bounding box rectangle
-            cv2.rectangle(img_aux, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        if len(contours) != len(words):
 
-            # Add the contour index label in the bounding box
-            label = str(id)
-            cv2.putText(img_aux, label, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+            for id, p in enumerate(words):
+                print(f"Paragraph: {self.id} is unparametrized")
+                word_list.append(wd.Word(id, None, words[id]))
+                #cv2.imshow("image", img_aux)
+                #cv2.waitKey()
 
-            #print(f"\nParagraph {self.id}: {self.text}")
-            #print(f"Number of words OCR'd {len(words)}: {words}")
-            #print(f"Number of contours detected: {len(contours)}")
-            #print(f"Word object id: {id}")
-            #print(f"Corresponding word: {words[id]}")
-            #print(f"Object word length: {len(word_list)}")
+        else:
+            for id, p in enumerate(contours):
+                print(f"Paragraph: {self.id} is parametrized")
+                x, y, w, h = cv2.boundingRect(p)
+                cropped_word = self.image[y:y + h, x:x + w]
 
-            #if len(contours) > len(words):
-            #cv2.imshow("image", img_aux)
-            #cv2.imshow(f"{words[id]},{len(contours)},{len(words)},{id}", cropped_word)
-            #cv2.waitKey()
+                # Draw the bounding box rectangle
+                cv2.rectangle(img_aux, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-            word_list.append(wd.Word(id, cropped_word, words[id]))
+                # Add the contour index label in the bounding box
+                label = str(id)
+                cv2.putText(img_aux, label, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
-            #for id, word in enumerate(word_list):
-             #   print(f"paragraph {id}")
-              #  print(f"{word.get_text()}")
+                word_list.append(wd.Word(id, cropped_word, words[id]))
+                #cv2.imshow("image", img_aux)
+                #cv2.waitKey()
+
+        cv2.imshow("image", img_aux)
+        cv2.waitKey()
+
+        #print(f"Word list: {word_list}")
 
         self.preview = imutils.resize(img_aux, width=1200)
 
-        # Display the result or perform additional processing
-        #cv2.imshow("boundboxxed", self.preview)
-
         self.words = word_list
+
+        # Display the result or perform additional processing
+        if dev:
+            # cv2.imshow("boundboxxed", self.preview)
+            # cv2.imshow("dilated", sheet_dilated)
+            # cv2.imshow("eroded", sheet_eroded)
+            # cv2.waitKey()
+            print("we enter dev")
+
 
     @staticmethod
     def get_word_coords(dilated_sheet, default):
